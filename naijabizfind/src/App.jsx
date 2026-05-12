@@ -3,8 +3,7 @@ import {
   Search, MapPin, Star, Filter, ChevronRight, Menu, X, Camera, 
   Phone, MessageCircle, Scissors, Coffee, ShoppingBag, Settings, 
   PlusCircle, Globe, CheckCircle2, ArrowRight, Clock, Heart, 
-  Share2, Navigation, ArrowLeft, ShieldCheck, Zap, FileText, Upload,
-  Linkedin, Instagram
+  Share2, Navigation, ArrowLeft, ShieldCheck, Zap, FileText, Upload
 } from 'lucide-react';
 
 // Custom TikTok Icon (since it's not in standard Lucide)
@@ -474,8 +473,8 @@ export default function App() {
            <div>
               <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-4">Connect</h4>
               <div className="flex gap-3">
-                 <a href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 hover:bg-[#008751] hover:text-white transition-all cursor-pointer"><Linkedin size={18} /></a>
-                 <a href="https://instagram.com/yourprofile" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 hover:bg-[#008751] hover:text-white transition-all cursor-pointer"><Instagram size={18} /></a>
+                 
+                 
                  <a href="https://tiktok.com/@yourprofile" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 hover:bg-[#008751] hover:text-white transition-all cursor-pointer"><TikTokIcon size={18} /></a>
               </div>
            </div>
