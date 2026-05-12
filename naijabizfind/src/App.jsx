@@ -3,10 +3,18 @@ import {
   Search, MapPin, Star, Filter, ChevronRight, Menu, X, Camera, 
   Phone, MessageCircle, Scissors, Coffee, ShoppingBag, Settings, 
   PlusCircle, Globe, CheckCircle2, ArrowRight, Clock, Heart, 
-  Share2, Navigation, ArrowLeft, ShieldCheck, Zap, FileText, Upload
+  Share2, Navigation, ArrowLeft, ShieldCheck, Zap, FileText, Upload,
+  Linkedin, Instagram
 } from 'lucide-react';
 
-// --- Theme & Configuration ---
+// Custom TikTok Icon (since it's not in standard Lucide)
+const TikTokIcon = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+  </svg>
+);
+
+// --- BRAND THEME COLORS ---
 const COLORS = {
   primary: '#008751', 
   primaryDark: '#007043',
@@ -15,7 +23,7 @@ const COLORS = {
   textMuted: '#6B7280',
 };
 
-// --- Mock Data Generator ---
+// --- DATA STRUCTURE: Mock Business Generator ---
 const generateBusinesses = (count, offset = 0) => {
   const categories = ["Fashion", "Food", "Services", "Beauty", "Auto"];
   const cities = ["Lagos", "Abuja", "PH City", "Ibadan", "Kano"];
@@ -37,7 +45,7 @@ const generateBusinesses = (count, offset = 0) => {
     featured: i < 5 && offset === 0,
     price: `₦${(Math.random() * 5 + 2).toFixed(0)},000+`,
     image: images[i % images.length],
-    description: "Providing high-quality local services to the community with years of experience and verified customer satisfaction. We take pride in our work and ensure every customer leaves happy.",
+    description: "Providing high-quality local services to the community with years of experience and verified customer satisfaction.",
     phone: "+234 800 000 0000",
     whatsapp: "+234 800 000 0000",
     hours: "9:00 AM - 6:00 PM",
@@ -57,8 +65,7 @@ const CATEGORIES = [
   { name: "Tech", icon: <Globe size={18} /> }
 ];
 
-// --- Sub-Components: Individual Business Cards ---
-
+// --- COMPONENT: Individual Business Card ---
 const BusinessCard = ({ biz, onClick }) => (
   <div 
     onClick={() => onClick(biz)}
@@ -88,8 +95,7 @@ const BusinessCard = ({ biz, onClick }) => (
   </div>
 );
 
-// --- Page Views ---
-
+// --- VIEW: HOMEPAGE ---
 const HomeView = ({ onNavigate, onSelectBusiness }) => (
   <div className="animate-in fade-in duration-500">
     <div className="bg-[#008751] py-10 md:py-16 px-4 md:px-6">
@@ -98,8 +104,8 @@ const HomeView = ({ onNavigate, onSelectBusiness }) => (
           <h1 className="text-2xl md:text-4xl font-extrabold mb-4 leading-tight">
             Find Local Experts <br className="hidden md:block"/> In Your Community
           </h1>
-          <p className="text-emerald-50 text-xs md:text-base mb-6 opacity-90 font-medium max-w-lg mx-auto md:mx-0">
-            Connecting you with verified tailors, mechanics, salons, and vendors in Nigeria. Quick, reliable, and professional.
+          <p className="text-emerald-50 text-xs md:text-base mb-6 opacity-90 font-medium">
+            Connecting you with verified tailors, mechanics, salons, and vendors in Nigeria.
           </p>
           <div className="flex bg-white rounded-xl p-1 shadow-lg max-w-md mx-auto md:mx-0 overflow-hidden">
             <input 
@@ -109,7 +115,7 @@ const HomeView = ({ onNavigate, onSelectBusiness }) => (
             />
             <button 
               onClick={() => onNavigate('directory')}
-              className="bg-[#008751] text-white px-4 md:px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-emerald-800 transition-all"
+              className="bg-[#008751] text-white px-4 md:px-6 py-2.5 rounded-lg font-bold text-sm"
             >
               Search
             </button>
@@ -118,31 +124,24 @@ const HomeView = ({ onNavigate, onSelectBusiness }) => (
       </div>
     </div>
 
-{/*Horizontal Category List*/}
     <section className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-10">
       <div className="flex items-center gap-3 overflow-x-auto pb-4 no-scrollbar">
         {CATEGORIES.map((cat, i) => (
           <button 
             key={i} 
             onClick={() => onNavigate('directory')}
-            className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full hover:border-[#008751] hover:text-[#008751] transition-all font-semibold text-[11px] md:text-sm text-gray-600 shadow-sm"
+            className="flex-shrink-0 flex items-center gap-2 px-4 md:px-5 py-2.5 bg-white border border-gray-200 rounded-full hover:border-[#008751] hover:text-[#008751] transition-all font-semibold text-[11px] md:text-sm text-gray-600 shadow-sm"
           >
             {cat.icon} {cat.name}
           </button>
         ))}
       </div>
     </section>
- 
- {/*Grid" Featured Businesses*/}
+
     <section className="max-w-7xl mx-auto px-4 md:px-6 py-6">
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-lg md:text-xl font-bold text-gray-900">Featured Business</h2>
-          <p className="text-[10px] md:text-xs text-gray-400">Hand-picked premium listings</p>
-        </div>
-        <button onClick={() => onNavigate('directory')} className="text-[#008751] text-xs md:text-sm font-bold flex items-center gap-1 hover:underline">
-          View All <ArrowRight size={14} />
-        </button>
+        <h2 className="text-lg font-bold text-gray-900">Featured Business</h2>
+        <button onClick={() => onNavigate('directory')} className="text-[#008751] text-xs md:text-sm font-bold">View All</button>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
         {FEATURED_SECTION.map(biz => <BusinessCard key={biz.id} biz={biz} onClick={onSelectBusiness} />)}
@@ -162,10 +161,7 @@ const HomeView = ({ onNavigate, onSelectBusiness }) => (
     </section>
 
     <section className="max-w-7xl mx-auto px-4 md:px-6 py-6 pb-20">
-      <div className="mb-6">
-        <h2 className="text-lg md:text-xl font-bold text-gray-900">Popular Nearby</h2>
-        <p className="text-[10px] md:text-xs text-gray-400">What's trending in your area</p>
-      </div>
+      <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-6">Popular Nearby</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
         {POPULAR_SECTION.map(biz => <BusinessCard key={biz.id} biz={biz} onClick={onSelectBusiness} />)}
       </div>
@@ -176,7 +172,7 @@ const HomeView = ({ onNavigate, onSelectBusiness }) => (
 // --- VIEW: BUSINESS DETAIL PROFILE ---
 const DetailView = ({ business, onBack }) => (
   <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 animate-in fade-in slide-in-from-right-4 duration-500">
-    <button onClick={onBack} className="flex items-center gap-2 text-gray-400 font-bold mb-6 hover:text-[#008751] transition-colors text-xs md:text-sm">
+    <button onClick={onBack} className="flex items-center gap-2 text-gray-400 font-bold mb-6 hover:text-[#008751] text-xs md:text-sm">
       <ArrowLeft size={16} /> Back to Search
     </button>
 
@@ -210,27 +206,22 @@ const DetailView = ({ business, onBack }) => (
         </div>
       </div>
 
-{/*Contact Info SideBar*/}
       <div className="lg:col-span-5">
         <div className="sticky top-24 bg-white p-6 md:p-8 border border-gray-100 rounded-2xl md:rounded-3xl shadow-xl space-y-4">
           <h3 className="font-extrabold text-gray-900 text-base md:text-lg">Contact Professional</h3>
-          <button className="w-full py-4 bg-[#008751] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-800 transition-all text-sm shadow-md">
+          <button className="w-full py-4 bg-[#008751] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-emerald-800 transition-all text-sm">
             <Phone size={18} /> Call {business.phone}
           </button>
-          <button className="w-full py-4 bg-[#25D366] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all text-sm shadow-md">
+          <button className="w-full py-4 bg-[#25D366] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all text-sm">
             <MessageCircle size={18} /> Chat on WhatsApp
           </button>
-          <div className="text-center pt-2">
-            <p className="text-[9px] md:text-[10px] text-gray-400 font-medium">Please mention <span className="text-[#008751] font-bold">NaijaBizFind</span> when calling.</p>
-          </div>
         </div>
       </div>
     </div>
   </div>
 );
 
-
-// --- VIEW: MULTI-STEP SUBMISSION FORM ---
+// --- VIEW: SUBMIT BUSINESS ---
 const SubmitView = () => {
   const [step, setStep] = useState(1);
   const [selectedPlan, setSelectedPlan] = useState('basic');
@@ -250,137 +241,64 @@ const SubmitView = () => {
           </div>
         </div>
         
-        {/* STEP 1: BUSINESS DATA COLLECTION */}
         {step === 1 && (
           <div className="space-y-6 animate-in slide-in-from-right-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Business Name</label>
-              <input type="text" className="w-full p-3 md:p-4 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#008751] font-bold text-sm" placeholder="e.g. Kola's Repairs" />
+            <input type="text" className="w-full p-3 md:p-4 bg-gray-50 rounded-xl border-none font-bold text-sm" placeholder="Business Name" />
+            <div className="grid grid-cols-2 gap-4">
+              <select className="w-full p-3 md:p-4 bg-gray-50 rounded-xl border-none font-bold text-sm">
+                {CATEGORIES.map(c => <option key={c.name}>{c.name}</option>)}
+              </select>
+              <input type="text" className="w-full p-3 md:p-4 bg-gray-50 rounded-xl border-none font-bold text-sm" placeholder="City" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Category</label>
-                <select className="w-full p-3 md:p-4 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#008751] font-bold text-sm">
-                  {CATEGORIES.map(c => <option key={c.name} value={c.name.toLowerCase()}>{c.name}</option>)}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">City Location</label>
-                <input type="text" className="w-full p-3 md:p-4 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#008751] font-bold text-sm" placeholder="Lagos, Abuja, etc." />
-              </div>
+            <div className="grid grid-cols-2 gap-4">
+               <input type="text" className="w-full p-3 bg-gray-50 rounded-xl border-none font-bold text-sm" placeholder="Open (e.g. 6am)" />
+               <input type="text" className="w-full p-3 bg-gray-50 rounded-xl border-none font-bold text-sm" placeholder="Close (e.g. 5pm)" />
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Time of Work (Operating Hours)</label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="relative">
-                   <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                   <input type="text" className="w-full p-3 md:p-4 pl-10 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#008751] font-bold text-xs md:text-sm" placeholder="Opening (e.g. 6am)" />
-                </div>
-                <div className="relative">
-                   <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                   <input type="text" className="w-full p-3 md:p-4 pl-10 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#008751] font-bold text-xs md:text-sm" placeholder="Closing (e.g. 8pm)" />
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Short Description</label>
-              <textarea rows="3" className="w-full p-3 md:p-4 bg-gray-50 rounded-xl border-none focus:ring-2 focus:ring-[#008751] font-bold text-sm resize-none" placeholder="Describe your services briefly..."></textarea>
-            </div>
-            <button 
-              onClick={() => setStep(2)}
-              className="w-full py-4 md:py-5 bg-[#008751] text-white rounded-xl md:rounded-2xl font-extrabold text-base md:text-lg hover:bg-emerald-800 transition-all shadow-lg flex items-center justify-center gap-2"
-            >
+            <textarea rows="3" className="w-full p-3 md:p-4 bg-gray-50 rounded-xl border-none font-bold text-sm resize-none" placeholder="Short Description"></textarea>
+            <button onClick={() => setStep(2)} className="w-full py-4 md:py-5 bg-[#008751] text-white rounded-xl md:rounded-2xl font-extrabold shadow-lg flex items-center justify-center gap-2">
               Next: Media Upload <ChevronRight size={20} />
             </button>
           </div>
         )}
 
-
- {/* STEP 2: CLOUDINARY MEDIA UPLOAD SECTION */}
         {step === 2 && (
           <div className="space-y-8 animate-in slide-in-from-right-4">
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center justify-between ml-1">
-                  Shop Picture (Required)
-                  <span className="text-[9px] text-[#008751] lowercase font-black">Display photo</span>
-                </label>
-                <div className="border-2 border-dashed border-gray-200 bg-gray-50/50 rounded-2xl p-8 flex flex-col items-center justify-center text-gray-400 hover:border-[#008751] hover:text-[#008751] transition-all cursor-pointer group">
-                  <Camera size={32} className="mb-2 group-hover:scale-110 transition-transform" />
-                  <span className="text-xs font-bold text-gray-600">Click to upload shop cover</span>
-                  <p className="text-[10px] mt-1 opacity-60">PNG, JPG up to 5MB</p>
+                <div className="border-2 border-dashed border-gray-200 bg-gray-50/50 rounded-2xl p-8 flex flex-col items-center justify-center text-gray-400 hover:border-[#008751] transition-all cursor-pointer group">
+                  <Camera size={32} className="mb-2 group-hover:scale-110" />
+                  <span className="text-xs font-bold text-gray-600">Upload Shop Cover (Required)</span>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center justify-between ml-1">
-                  Business Certificate (Optional)
-                  <span className="text-[9px] text-gray-300 lowercase font-medium">For verified badge</span>
-                </label>
-                <div className="border-2 border-dashed border-gray-200 bg-gray-50/30 rounded-2xl p-6 flex items-center gap-4 text-gray-400 hover:border-[#008751] hover:text-[#008751] transition-all cursor-pointer">
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-gray-100">
-                    <FileText size={20} className="text-gray-400" />
-                  </div>
-                  <div className="flex-1">
-                    <span className="text-xs font-bold block text-gray-600">Upload CAC or Trade Cert</span>
-                    <p className="text-[9px] opacity-60">PDF, PNG or JPG</p>
-                  </div>
-                  <Upload size={18} className="text-gray-400" />
+                <div className="border-2 border-dashed border-gray-200 bg-gray-50/30 rounded-2xl p-6 flex items-center gap-4 text-gray-400 hover:border-[#008751] transition-all cursor-pointer">
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-100"><FileText size={20} /></div>
+                  <div className="flex-1"><span className="text-xs font-bold block text-gray-600">Business Certificate (Optional)</span></div>
+                  <Upload size={18} />
                 </div>
-              </div>
             </div>
-
-            <div className="flex gap-3 pt-4">
-              <button onClick={() => setStep(1)} className="flex-1 py-4 bg-gray-50 text-gray-500 rounded-xl font-bold text-sm">Back</button>
-              <button onClick={() => setStep(3)} className="flex-[2] py-4 bg-[#008751] text-white rounded-xl font-extrabold text-sm shadow-lg">Next: Select Plan</button>
+            <div className="flex gap-3">
+              <button onClick={() => setStep(1)} className="flex-1 py-4 bg-gray-50 text-gray-500 rounded-xl font-bold">Back</button>
+              <button onClick={() => setStep(3)} className="flex-[2] py-4 bg-[#008751] text-white rounded-xl font-extrabold shadow-lg">Next: Select Plan</button>
             </div>
           </div>
         )}
 
-{/* STEP 3: PAYSTACK PLAN SELECTION */}
         {step === 3 && (
           <div className="space-y-8 animate-in slide-in-from-right-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div 
-                onClick={() => setSelectedPlan('basic')}
-                className={`relative p-6 rounded-2xl border-2 transition-all cursor-pointer ${selectedPlan === 'basic' ? 'border-[#008751] bg-emerald-50 shadow-inner' : 'border-gray-100 bg-white hover:border-gray-200'}`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <ShieldCheck size={20} className={selectedPlan === 'basic' ? 'text-[#008751]' : 'text-gray-300'} />
-                  <span className="font-black text-gray-900 text-sm uppercase tracking-tight">Basic Listing</span>
-                </div>
-                <div className="text-2xl font-black text-gray-900 mb-4">₦5,000</div>
-                <ul className="text-[10px] text-gray-500 space-y-2 font-medium">
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-emerald-500" /> Standard Search Position</li>
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-emerald-500" /> Contact Call/WhatsApp Buttons</li>
-                </ul>
+              <div onClick={() => setSelectedPlan('basic')} className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${selectedPlan === 'basic' ? 'border-[#008751] bg-emerald-50' : 'border-gray-100 bg-white'}`}>
+                <ShieldCheck size={20} className={selectedPlan === 'basic' ? 'text-[#008751]' : 'text-gray-300'} />
+                <span className="font-black text-gray-900 block mt-2">Basic Listing</span>
+                <div className="text-2xl font-black text-gray-900">₦5,000</div>
               </div>
 
-              <div 
-                onClick={() => setSelectedPlan('featured')}
-                className={`relative p-6 rounded-2xl border-2 transition-all cursor-pointer ${selectedPlan === 'featured' ? 'border-[#FFC107] bg-amber-50 shadow-inner' : 'border-gray-100 bg-white hover:border-gray-200'}`}
-              >
-                <div className="absolute -top-3 right-4 bg-[#FFC107] text-emerald-900 text-[9px] font-black px-2 py-1 rounded-md shadow-sm">RECOMMENDED</div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap size={20} className={selectedPlan === 'featured' ? 'text-[#FFC107]' : 'text-gray-300'} />
-                  <span className="font-black text-gray-900 text-sm uppercase tracking-tight">Featured</span>
-                </div>
-                <div className="text-2xl font-black text-gray-900 mb-4">₦10,000</div>
-                <ul className="text-[10px] text-gray-500 space-y-2 font-medium">
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-emerald-500" /> Show on Homepage Top</li>
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-emerald-500" /> Priority Search Spotlight</li>
-                </ul>
+              <div onClick={() => setSelectedPlan('featured')} className={`p-6 rounded-2xl border-2 cursor-pointer transition-all ${selectedPlan === 'featured' ? 'border-[#FFC107] bg-amber-50' : 'border-gray-100 bg-white'}`}>
+                <Zap size={20} className={selectedPlan === 'featured' ? 'text-[#FFC107]' : 'text-gray-300'} />
+                <span className="font-black text-gray-900 block mt-2">Featured</span>
+                <div className="text-2xl font-black text-gray-900">₦10,000</div>
               </div>
             </div>
-
             <div className="flex flex-col md:flex-row gap-3">
-              <button onClick={() => setStep(2)} className="w-full md:w-1/3 py-4 bg-gray-100 text-gray-400 rounded-xl font-bold text-sm">Back</button>
-              <button 
-                onClick={() => alert(`Redirecting to payment gateway for ${selectedPlan === 'basic' ? '₦5,000' : '₦10,000'}`)} 
-                className="w-full md:w-2/3 py-4 bg-[#008751] text-white rounded-xl font-black text-sm shadow-xl active:scale-95 transition-all"
-              >
-                Pay & List Business
-              </button>
+              <button onClick={() => setStep(2)} className="w-full md:w-1/3 py-4 bg-gray-100 text-gray-400 rounded-xl font-bold">Back</button>
+              <button onClick={() => alert(`Redirect to Paystack for ${selectedPlan}`)} className="w-full md:w-2/3 py-4 bg-[#008751] text-white rounded-xl font-black shadow-xl">Pay & List Business</button>
             </div>
           </div>
         )}
@@ -389,8 +307,70 @@ const SubmitView = () => {
   );
 };
 
-// --- Main App Component ---
+// --- NEW VIEW: ABOUT US ---
+const AboutView = () => (
+  <div className="max-w-4xl mx-auto px-4 md:px-6 py-16 animate-in fade-in duration-500">
+    <h1 className="text-4xl font-black text-gray-900 mb-6">About NaijaBizFind</h1>
+    <div className="prose prose-emerald max-w-none text-gray-600 leading-relaxed space-y-6">
+      <p className="text-xl font-medium">NaijaBizFind is Nigeria's premier local business directory, dedicated to connecting quality service providers with customers in every neighborhood.</p>
+      <p>Our platform was born from a simple observation: many of Nigeria's most talented artisans and small business owners have no online presence. We bridge that gap by providing a professional, easy-to-use directory where tailors, mechanics, salons, and local vendors can be discovered by people in their cities.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12">
+        <div className="bg-emerald-50 p-8 rounded-3xl">
+          <h3 className="text-[#008751] font-black text-xl mb-4">Our Mission</h3>
+          <p>To empower small businesses in Nigeria by providing them with a digital footprint and direct access to a wider customer base.</p>
+        </div>
+        <div className="bg-amber-50 p-8 rounded-3xl">
+          <h3 className="text-amber-800 font-black text-xl mb-4">Our Vision</h3>
+          <p>To become the most trusted and comprehensive resource for finding reliable local services across all 36 states of Nigeria.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
+// --- NEW VIEW: PRIVACY POLICY ---
+const PrivacyView = () => (
+  <div className="max-w-4xl mx-auto px-4 md:px-6 py-16 animate-in fade-in duration-500">
+    <h1 className="text-4xl font-black text-gray-900 mb-6">Privacy Policy</h1>
+    <div className="text-gray-600 space-y-8">
+      <section>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">1. Information We Collect</h2>
+        <p>When you register a business, we collect your business name, contact details, physical address, and any media you upload. For users searching the directory, we may collect location data to provide local results.</p>
+      </section>
+      <section>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">2. How We Use Your Information</h2>
+        <p>Information provided in business listings is made public to allow customers to find and contact you. We use your contact details to send notifications regarding your listing status and payment confirmations.</p>
+      </section>
+      <section>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">3. Payment Security</h2>
+        <p>Payments are processed through Paystack. We do not store your credit card or bank details on our servers.</p>
+      </section>
+    </div>
+  </div>
+);
+
+// --- NEW VIEW: TERMS & CONDITIONS ---
+const TermsView = () => (
+  <div className="max-w-4xl mx-auto px-4 md:px-6 py-16 animate-in fade-in duration-500">
+    <h1 className="text-4xl font-black text-gray-900 mb-6">Terms & Conditions</h1>
+    <div className="text-gray-600 space-y-8">
+      <section>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">1. Listing Verification</h2>
+        <p>All business listings are subject to verification. NaijaBizFind reserves the right to reject or remove listings that are fraudulent, illegal, or violate our community standards.</p>
+      </section>
+      <section>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">2. Payment & Refunds</h2>
+        <p>Listing fees are non-refundable once the business listing has been reviewed and published. Basic listings stay active for 12 months unless otherwise specified.</p>
+      </section>
+      <section>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">3. User Conduct</h2>
+        <p>Users are expected to provide accurate information. Misrepresentation of a business or service may lead to permanent banning from the platform.</p>
+      </section>
+    </div>
+  </div>
+);
+
+// --- MAIN CONTROLLER & NAVIGATION ---
 export default function App() {
   const [page, setPage] = useState('home');
   const [selectedBiz, setSelectedBiz] = useState(null);
@@ -410,8 +390,8 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-emerald-100 selection:text-emerald-900">
-      {/* Navigation */}
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-emerald-100">
+      {/* NAVBAR */}
       <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 py-3 md:py-4 px-4 md:px-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div onClick={() => navigate('home')} className="flex items-center gap-2 cursor-pointer group">
@@ -420,32 +400,32 @@ export default function App() {
           </div>
 
           <div className="hidden md:flex gap-8">
-            <button onClick={() => navigate('home')} className={`text-[11px] uppercase font-black transition-colors ${page === 'home' ? 'text-[#008751]' : 'text-gray-400 hover:text-gray-600'}`}>Home</button>
-            <button onClick={() => navigate('directory')} className={`text-[11px] uppercase font-black transition-colors ${page === 'directory' ? 'text-[#008751]' : 'text-gray-400 hover:text-gray-600'}`}>Directory</button>
-            <button onClick={() => navigate('submit')} className="bg-[#008751] text-white px-5 py-2 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-emerald-800 shadow-md">List Business</button>
+            <button onClick={() => navigate('home')} className={`text-[11px] font-black transition-colors ${page === 'home' ? 'text-[#008751]' : 'text-gray-400'}`}>HOME</button>
+            <button onClick={() => navigate('directory')} className={`text-[11px] font-black transition-colors ${page === 'directory' ? 'text-[#008751]' : 'text-gray-400'}`}>DIRECTORY</button>
+            <button onClick={() => navigate('submit')} className="bg-[#008751] text-white px-5 py-2 rounded-lg text-xs font-black shadow-md">List Business</button>
           </div>
 
-          <button className="md:hidden p-2 text-gray-500" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>{isMenuOpen ? <X size={24} /> : <Menu size={24} />}</button>
         </div>
 
- {/* MOBILE MENU */}
+        {/* MOBILE MENU */}
         {isMenuOpen && (
-          <div className="absolute top-full left-0 w-full bg-white border-b border-gray-100 p-6 flex flex-col gap-4 shadow-2xl md:hidden animate-in slide-in-from-top-4">
-            <button onClick={() => navigate('home')} className="text-left font-black text-[11px] uppercase tracking-widest text-gray-600 py-2 border-b border-gray-50">Home</button>
-            <button onClick={() => navigate('directory')} className="text-left font-black text-[11px] uppercase tracking-widest text-gray-600 py-2 border-b border-gray-50">Browse Directory</button>
-            <button onClick={() => navigate('submit')} className="w-full bg-[#008751] text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs mt-2 shadow-lg">List My Business</button>
+          <div className="absolute top-full left-0 w-full bg-white border-b border-gray-100 p-6 flex flex-col gap-4 shadow-xl md:hidden animate-in slide-in-from-top-4">
+            <button onClick={() => navigate('home')} className="text-left font-black text-[11px] uppercase text-gray-600 py-2 border-b border-gray-50">Home</button>
+            <button onClick={() => navigate('directory')} className="text-left font-black text-[11px] uppercase text-gray-600 py-2 border-b border-gray-50">Browse Directory</button>
+            <button onClick={() => navigate('submit')} className="w-full bg-[#008751] text-white py-4 rounded-xl font-black uppercase text-xs mt-2 shadow-lg">List My Business</button>
           </div>
         )}
       </nav>
 
-
- {/* VIEW SWITCHER LOGIC */}
+      {/* VIEW SWITCHER LOGIC */}
       <main>
         {page === 'home' && <HomeView onNavigate={navigate} onSelectBusiness={handleSelectBusiness} />}
         {page === 'detail' && <DetailView business={selectedBiz} onBack={() => navigate('home')} />}
         {page === 'submit' && <SubmitView />}
+        {page === 'about' && <AboutView />}
+        {page === 'privacy' && <PrivacyView />}
+        {page === 'terms' && <TermsView />}
         {page === 'directory' && (
           <div className="max-w-7xl mx-auto px-4 md:px-6 py-10 animate-in fade-in duration-500">
              <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
@@ -465,36 +445,38 @@ export default function App() {
         )}
       </main>
 
- {/* FOOTER SECTION */}
+      {/* FOOTER SECTION */}
       <footer className="bg-white border-t border-gray-100 pt-12 md:pt-16 pb-8 px-4 md:px-6 mt-10">
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 mb-12">
            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-[#008751] rounded flex items-center justify-center text-white font-black italic text-xs">N</div>
-                <span className="text-sm font-black text-[#008751]">NaijaBizFind</span>
-              </div>
-              <p className="text-gray-400 text-[11px] md:text-xs leading-relaxed max-w-xs font-medium">Connecting local artisans and small businesses with customers in every Nigerian neighborhood. Built for Nigerians, by Nigerians.</p>
+              <div className="flex items-center gap-2"><div className="w-8 h-8 bg-[#008751] rounded flex items-center justify-center text-white font-black italic text-xs">N</div><span className="text-sm font-black text-[#008751]">NaijaBizFind</span></div>
+              <p className="text-gray-400 text-[11px] leading-relaxed max-w-xs font-medium">Connecting Nigerian neighborhoods. Built for Nigerians, by Nigerians.</p>
            </div>
+           
            <div>
               <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-4">Company</h4>
               <ul className="text-xs md:text-sm text-gray-500 space-y-3 font-bold uppercase tracking-tight">
-                 <li className="hover:text-[#008751] cursor-pointer text-[11px]">About Us</li>
-                 <li className="hover:text-[#008751] cursor-pointer text-[11px]">Privacy Policy</li>
-                 <li className="hover:text-[#008751] cursor-pointer text-[11px]">Terms</li>
+                 <li onClick={() => navigate('about')} className="hover:text-[#008751] cursor-pointer text-[11px]">About Us</li>
+                 <li onClick={() => navigate('privacy')} className="hover:text-[#008751] cursor-pointer text-[11px]">Privacy Policy</li>
+                 <li onClick={() => navigate('terms')} className="hover:text-[#008751] cursor-pointer text-[11px]">Terms</li>
               </ul>
            </div>
+           
            <div>
               <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-4">Resources</h4>
               <ul className="text-xs md:text-sm text-gray-500 space-y-3 font-bold uppercase tracking-tight">
-                 <li className="hover:text-[#008751] cursor-pointer text-[11px]">Submit Listing</li>
+                 <li onClick={() => navigate('submit')} className="hover:text-[#008751] cursor-pointer text-[11px]">Submit Listing</li>
                  <li className="hover:text-[#008751] cursor-pointer text-[11px]">Partner Portal</li>
                  <li className="hover:text-[#008751] cursor-pointer text-[11px]">Support</li>
               </ul>
            </div>
+           
            <div>
               <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-4">Connect</h4>
               <div className="flex gap-3">
-                 {[1,2,3].map(i => <div key={i} className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 hover:bg-[#008751] hover:text-white transition-all cursor-pointer"><Globe size={18} /></div>)}
+                 <a href="https://linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 hover:bg-[#008751] hover:text-white transition-all cursor-pointer"><Linkedin size={18} /></a>
+                 <a href="https://instagram.com/yourprofile" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 hover:bg-[#008751] hover:text-white transition-all cursor-pointer"><Instagram size={18} /></a>
+                 <a href="https://tiktok.com/@yourprofile" target="_blank" rel="noopener noreferrer" className="w-9 h-9 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 hover:bg-[#008751] hover:text-white transition-all cursor-pointer"><TikTokIcon size={18} /></a>
               </div>
            </div>
         </div>
