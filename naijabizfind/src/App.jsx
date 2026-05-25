@@ -12,7 +12,6 @@ import {
 
 // --- CONFIG ---
 const API_BASE = 'https://naijabizfind.onrender.com/api';
-// THE ADMIN ROUTE: Accessed via typing /admin or clicking the logo exactly 5 times
 const STEALTH_ADMIN_PATH = '/admin';
 
 // Custom TikTok Icon
@@ -74,19 +73,19 @@ const useScrollReveal = () => {
 // --- COMPONENT: Business Card Skeleton Loader (Premium Shimmer) ---
 const BusinessCardSkeleton = () => (
   <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 flex flex-col h-full animate-pulse shadow-sm">
-    <div className="bg-gradient-to-r from-gray-100 to-gray-200 h-40 sm:h-44 w-full" />
+    <div className="bg-gradient-to-r from-gray-100 via-gray-50 to-gray-100 h-40 sm:h-44 w-full bg-[length:200%_100%] animate-[shimmer_1.5s_infinite]" />
     <div className="p-4 flex-1 flex flex-col space-y-3">
-      <div className="h-4 bg-gray-200 rounded w-3/4" />
+      <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse" />
       <div className="flex items-center gap-1.5">
-        <div className="w-3.5 h-3.5 bg-gray-200 rounded-full" />
-        <div className="h-3 bg-gray-200 rounded w-1/2" />
+        <div className="w-3.5 h-3.5 bg-gray-200 rounded-full animate-pulse" />
+        <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse" />
       </div>
       <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between">
         <div className="flex items-center gap-1.5 w-1/3">
-          <div className="w-3.5 h-3.5 bg-gray-200 rounded-full" />
-          <div className="h-3 bg-gray-200 rounded w-1/2" />
+          <div className="w-3.5 h-3.5 bg-gray-200 rounded-full animate-pulse" />
+          <div className="h-3 bg-gray-200 rounded w-1/2 animate-pulse" />
         </div>
-        <div className="h-3 bg-gray-200 rounded w-1/4" />
+        <div className="h-3 bg-gray-200 rounded w-1/4 animate-pulse" />
       </div>
     </div>
   </div>
@@ -120,28 +119,32 @@ const BusinessCard = ({ biz, onClick }) => {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{ transition: 'transform 0.15s ease-out, border-color 0.3s ease, box-shadow 0.3s ease' }}
-      className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-emerald-200 hover:shadow-2xl cursor-pointer flex flex-col h-full will-change-transform"
+      className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-emerald-200 hover:shadow-2xl cursor-pointer flex flex-col h-full定位 relative will-change-transform shadow-sm"
     >
       <div className="relative h-40 sm:h-44 overflow-hidden">
         <img src={getShopPhoto(biz)} alt={biz.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
         {isFeatured(biz) && (
-          <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider shadow-lg z-10">
+          <div className="absolute top-3 left-3 bg-[#008751] text-white text-[10px] font-black px-2.5 py-1 rounded uppercase tracking-wider shadow-lg z-10">
             Featured
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
-      <div className="p-4 flex-1 flex flex-col">
-        <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-1 truncate group-hover:text-[#008751] transition-colors">{biz.name}</h3>
-        <div className="flex items-center text-gray-500 text-[10px] sm:text-xs mb-3">
-          <MapPin size={12} className="mr-1 text-[#008751]" /> {biz.city}
+      <div className="p-4 flex-1 flex flex-col justify-between">
+        <div>
+          <h3 className="font-black text-gray-900 text-sm sm:text-base mb-1 truncate group-hover:text-[#008751] transition-colors">{biz.name}</h3>
+          <div className="flex items-center text-gray-400 font-bold text-[10px] sm:text-xs mb-3">
+            <MapPin size={12} className="mr-1 text-[#008751]" /> {biz.city}
+          </div>
         </div>
-        <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between">
+        <div className="pt-3 border-t border-gray-50 flex items-center justify-between">
           <div className="flex items-center gap-1">
             <Star size={14} fill={COLORS.accent} stroke={COLORS.accent} className="group-hover:rotate-[72deg] transition-transform duration-500" />
-            <span className="text-xs sm:text-sm font-bold text-gray-900">{biz.rating || '5.0'}</span>
+            <span className="text-xs sm:text-sm font-black text-gray-900">{biz.rating || '5.0'}</span>
           </div>
-          <span className="text-[#008751] font-bold text-[10px] sm:text-xs capitalize bg-emerald-50 px-2 py-0.5 rounded-full">{biz.category}</span>
+          <button className="text-[10px] md:text-xs font-black bg-gray-50 group-hover:bg-green-50 text-gray-500 group-hover:text-[#008751] px-2.5 py-1 rounded-lg transition-colors">
+            View Details
+          </button>
         </div>
       </div>
     </div>
@@ -167,15 +170,157 @@ const Alert = ({ type, message }) => {
   );
 };
 
-// --- VIEW: REGISTRATION FLOW & DIRECTORY HOME (Now Main View) ---
-const HomeView = ({ onNavigate, onSelectBusiness }) => {
-  const [businesses, setBusinesses] = useState([]);
-  const [loading, setLoading] = useState(true);
+// --- VIEW: BEAUTIFUL LANDING PAGE ---
+const LandingView = ({ onNavigate }) => {
+  const heroRef = useScrollReveal();
+  const stepRef = useScrollReveal();
+  const statRef = useScrollReveal();
+
+  const [stats, setStats] = useState({ vendors: 0, cities: 0, verified: 100 });
+  const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
-    const fetchFeatured = async () => {
+    const fetchStats = async () => {
       try {
         const res = await fetch(`${API_BASE}/businesses`);
+        if (res.ok) {
+          const data = await res.json();
+          const uniqueCities = new Set(data.map(b => b.city?.trim().toLowerCase()).filter(Boolean));
+          setStats({
+            vendors: data.length,
+            cities: uniqueCities.size,
+            verified: 100
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load real stats from MongoDB:", err);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  return (
+    <div className="space-y-16 pb-20 overflow-hidden">
+      {/* Dynamic Hero Grid - Exact Matching Documentation Page 3 */}
+      <section ref={heroRef} className="relative bg-[#008751] text-white py-20 lg:py-32 px-4 md:px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-600/30 via-slate-950/20 to-[#008751] pointer-events-none" />
+        <div className="absolute top-10 right-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl animate-pulse" />
+        
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
+          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-yellow-300 px-4 py-1.5 rounded-full text-xs font-black tracking-wide uppercase">
+              <Zap size={14} className="animate-bounce" /> Verified Local Service Hub
+            </div>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-none tracking-tight">
+              Find Local Shops, Tailors, <br/>
+              <span className="text-yellow-300">Salons & More Near You</span>
+            </h1>
+            
+            {/* Embedded Inline Search Box */}
+            <div className="max-w-xl bg-white p-2 rounded-2xl shadow-2xl flex items-center border border-gray-100 gap-2 mt-4 transform hover:scale-[1.01] transition-transform">
+              <Search className="text-gray-400 ml-3 flex-shrink-0" size={20} />
+              <input 
+                type="text" 
+                onClick={() => onNavigate('home')}
+                placeholder="Search businesses in Lagos, Abuja..." 
+                className="w-full p-2 outline-none text-gray-900 font-bold text-sm bg-transparent"
+              />
+              <button onClick={() => onNavigate('home')} className="bg-[#008751] hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-wider px-5 py-3 rounded-xl transition-colors">
+                Find
+              </button>
+            </div>
+          </div>
+          
+          <div className="lg:col-span-5 relative">
+            <div className="bg-white text-gray-900 border border-gray-100 p-8 rounded-3xl shadow-2xl relative overflow-hidden group">
+              <div className="absolute -right-8 -top-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-xl" />
+              <h3 className="text-base font-black mb-4 uppercase tracking-wider text-gray-400">Categories</h3>
+              <div className="space-y-4 text-xs font-semibold text-gray-500">
+                {CATEGORIES.map((cat, idx) => (
+                  <div key={idx} onClick={() => onNavigate('home', { category: cat.value })} className="flex items-center justify-between p-3.5 bg-gray-50 hover:bg-green-50 hover:border-emerald-200 border border-gray-100 rounded-xl cursor-pointer transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="text-[#008751]">{cat.icon}</div>
+                      <p className="text-gray-900 font-black">{cat.name}</p>
+                    </div>
+                    <ChevronRight size={14} className="text-gray-400" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Statistics Board */}
+      <section ref={statRef} className="max-w-7xl mx-auto px-4 md:px-6 transform opacity-0 translate-y-12 transition-all duration-700 ease-out">
+        <div className="bg-gradient-to-r from-emerald-600 to-[#008751] rounded-3xl p-8 md:p-12 text-white shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-emerald-400/30">
+            <div className="space-y-1 pt-4 md:pt-0">
+              <h3 className="text-4xl md:text-5xl font-black">
+                {loadingStats ? <Loader2 className="animate-spin inline-block" size={32} /> : `${stats.vendors}`}
+              </h3>
+              <p className="text-xs md:text-sm font-extrabold uppercase tracking-widest text-emerald-100">Registered Live Vendors</p>
+            </div>
+            <div className="space-y-1 pt-6 md:pt-0">
+              <h3 className="text-4xl md:text-5xl font-black">
+                {loadingStats ? <Loader2 className="animate-spin inline-block" size={32} /> : `${stats.cities}`}
+              </h3>
+              <p className="text-xs md:text-sm font-extrabold uppercase tracking-widest text-emerald-100">Nigerian Cities Covered</p>
+            </div>
+            <div className="space-y-1 pt-6 md:pt-0">
+              <h3 className="text-4xl md:text-5xl font-black">{stats.verified}%</h3>
+              <p className="text-xs md:text-sm font-extrabold uppercase tracking-widest text-emerald-100">CAC Profile Verification</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Segment */}
+      <section ref={stepRef} className="max-w-7xl mx-auto px-4 md:px-6 py-6 transform opacity-0 translate-y-12 transition-all duration-700 ease-out">
+        <div className="text-center space-y-3 mb-12">
+          <h2 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">Simple. Transparent. Reliable.</h2>
+          <p className="text-xs md:text-sm text-[#008751] font-black uppercase tracking-widest">How to use the directory platform</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="p-8 bg-white border border-gray-100 rounded-3xl text-center space-y-4 hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-emerald-50 text-[#008751] rounded-2xl flex items-center justify-center font-black mx-auto">1</div>
+            <h3 className="font-extrabold text-gray-900">Choose a Category</h3>
+            <p className="text-xs text-gray-500 font-medium leading-relaxed">Select from fashion designers, culinary caterers, salons, mechanical workshops, and tech assistance hubs near you.</p>
+          </div>
+          <div className="p-8 bg-white border border-gray-100 rounded-3xl text-center space-y-4 hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-emerald-50 text-[#008751] rounded-2xl flex items-center justify-center font-black mx-auto">2</div>
+            <h3 className="font-extrabold text-gray-900">Verify Credentials</h3>
+            <p className="text-xs text-gray-500 font-medium leading-relaxed">Inspect profile cover photos, working hours, exact locations, and registered CAC trade certificates.</p>
+          </div>
+          <div className="p-8 bg-white border border-gray-100 rounded-3xl text-center space-y-4 hover:shadow-xl transition-shadow">
+            <div className="w-12 h-12 bg-emerald-50 text-[#008751] rounded-2xl flex items-center justify-center font-black mx-auto">3</div>
+            <h3 className="font-extrabold text-gray-900">Direct Contact</h3>
+            <p className="text-xs text-gray-500 font-medium leading-relaxed">Initiate a secure telephone line or instant WhatsApp chat directly with the professional without paying a middleman.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+// --- VIEW: REGISTRATION FLOW & DIRECTORY HOME (Exact matching Page 4 layout filters) ---
+const HomeView = ({ onNavigate, onSelectBusiness, initialCategory }) => {
+  const [businesses, setBusinesses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Filtering States matches Documentation layout side view
+  const [search, setSearch] = useState('');
+  const [cityFilter, setCityFilter] = useState('');
+  const [selectedCat, setSelectedCat] = useState(initialCategory || '');
+
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        let url = `${API_BASE}/businesses`;
+        if (selectedCat) url += `?category=${selectedCat}`;
+        const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
           setBusinesses(data);
@@ -186,89 +331,119 @@ const HomeView = ({ onNavigate, onSelectBusiness }) => {
         setLoading(false);
       }
     };
-    fetchFeatured();
-  }, []);
+    fetchListings();
+  }, [selectedCat]);
 
-  const featured = businesses.filter(b => isFeatured(b)).slice(0, 5);
-  const popular = businesses.filter(b => !isFeatured(b)).slice(0, 10);
-
-  const featRef = useScrollReveal();
-  const ctaRef = useScrollReveal();
-  const popRef = useScrollReveal();
+  const filtered = businesses.filter(b => {
+    const matchesSearch = b.name.toLowerCase().includes(search.toLowerCase()) || b.description.toLowerCase().includes(search.toLowerCase());
+    const matchesCity = cityFilter === '' || b.city.toLowerCase().includes(cityFilter.toLowerCase());
+    return matchesSearch && matchesCity;
+  });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 py-10 space-y-12 overflow-hidden">
-      {/* SEARCH RE-ROUTE HERO */}
-      <div className="bg-[#008751] rounded-3xl p-8 md:p-12 text-white flex flex-col md:flex-row justify-between items-center gap-8 shadow-xl">
-        <div className="space-y-3 flex-1">
-          <h2 className="text-2xl md:text-4xl font-black tracking-tight leading-none">Find Verified Local Service Providers</h2>
-          <p className="text-xs md:text-sm text-emerald-100 font-medium max-w-md">Instantly lookup local mechanics, custom tailors, salons, and computer repair technicians.</p>
-        </div>
-        <div className="w-full md:w-auto">
-          <button onClick={() => onNavigate('directory')} className="w-full md:w-auto px-8 py-4 bg-white text-[#008751] font-black text-sm uppercase tracking-wider rounded-xl shadow-lg flex items-center justify-center gap-2 hover:bg-emerald-50 transition-colors">
-            <Search size={16} /> Open Directory Panel
-          </button>
-        </div>
+    <div className="max-w-7xl mx-auto px-4 md:px-6 py-10 overflow-hidden">
+      
+      {/* Core Layout Wrapper containing Left Side Filtering and Main Product Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* =========================================
+            LEFT BAR SIDEBAR FILTERS (Page 4 Blueprint)
+        ============================================= */}
+        <aside className="lg:col-span-3 bg-white p-6 rounded-3xl border border-gray-100 space-y-6 shadow-sm sticky top-24">
+          <div className="flex items-center justify-between border-b pb-3 border-gray-100">
+            <h3 className="text-base font-black tracking-tight flex items-center gap-1.5"><Filter size={16} className="text-[#008751]" /> Filter Businesses</h3>
+            <button onClick={() => { setSearch(''); setCityFilter(''); setSelectedCat(''); }} className="text-xs font-black text-gray-400 hover:text-red-500 transition-colors">Clear All</button>
+          </div>
+
+          {/* Keyword Field */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-wider text-gray-400">Search Keywords</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+              <input 
+                type="text" 
+                placeholder="Search businesses..." 
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:border-[#008751] focus:bg-white transition-colors"
+              />
+            </div>
+          </div>
+
+          {/* Category Facets */}
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-wider text-gray-400 block mb-1">Category</label>
+            <div className="space-y-1">
+              <div 
+                onClick={() => setSelectedCat('')}
+                className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all ${selectedCat === '' ? 'bg-green-50 text-[#008751]' : 'text-gray-500 hover:bg-gray-50'}`}
+              >
+                <span>All Categories</span>
+              </div>
+              {CATEGORIES.map((c, i) => (
+                <div 
+                  key={i}
+                  onClick={() => setSelectedCat(c.value)}
+                  className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all ${selectedCat === c.value ? 'bg-green-50 text-[#008751]' : 'text-gray-500 hover:bg-gray-50'}`}
+                >
+                  <span className="capitalize">{c.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Target Region Location Filter */}
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-wider text-gray-400">City / State</label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-[#008751]" size={14} />
+              <input 
+                type="text" 
+                placeholder="Filter by City..." 
+                value={cityFilter}
+                onChange={e => setCityFilter(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:border-[#008751] focus:bg-white transition-colors"
+              />
+            </div>
+          </div>
+        </aside>
+
+        {/* =========================================
+            MAIN COLUMN LISTINGS DATA GRID
+        ============================================= */}
+        <section className="lg:col-span-9 space-y-6">
+          <div className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100">
+            <p className="text-xs font-black text-gray-500 uppercase tracking-wider">
+              Showing {filtered.length} live matching operations nodes
+            </p>
+          </div>
+
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[1, 2, 3, 4, 5, 6].map(i => <BusinessCardSkeleton key={i} />)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed text-gray-400 font-bold">
+              No active paid & approved listings match your filter selections.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {filtered.map(biz => (
+                <BusinessCard key={biz._id} biz={biz} onClick={onSelectBusiness} />
+              ))}
+            </div>
+          )}
+        </section>
+
       </div>
-
-      {/* FEATURED */}
-      <section ref={featRef} className="transform opacity-0 translate-y-12 transition-all duration-700 ease-out">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-black text-gray-900 tracking-tight">Featured Businesses</h2>
-          <button onClick={() => onNavigate('directory')} className="text-[#008751] text-xs md:text-sm font-extrabold flex items-center gap-0.5 group">
-            View All <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
-            {[1, 2, 3, 4, 5].map(i => <BusinessCardSkeleton key={i} />)}
-          </div>
-        ) : featured.length === 0 ? (
-          <p className="text-sm text-gray-400 font-medium bg-gray-50 p-6 rounded-xl border border-dashed">No featured directory entries live yet.</p>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5 animate-in fade-in duration-500">
-            {featured.map(biz => <BusinessCard key={biz._id} biz={biz} onClick={onSelectBusiness} />)}
-          </div>
-        )}
-      </section>
-
-      {/* CTA BANNER */}
-      <section ref={ctaRef} className="transform opacity-0 translate-y-12 transition-all duration-700 ease-out">
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-3xl p-6 md:p-12 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left shadow-md relative overflow-hidden group">
-          <div className="absolute -right-16 -bottom-16 w-48 h-48 bg-emerald-200/30 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700" />
-          <div className="relative z-10 space-y-1">
-            <h3 className="text-xl md:text-2xl font-black text-emerald-900 tracking-tight">List your local business today</h3>
-            <p className="text-emerald-700 text-xs md:text-sm font-semibold">Join over 1,000+ businesses getting discovered daily.</p>
-          </div>
-          <button onClick={() => onNavigate('submit')} className="relative z-10 w-full md:w-auto bg-[#008751] text-white px-8 py-3.5 rounded-xl font-black hover:bg-emerald-800 hover:shadow-xl transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all text-sm shadow-lg">
-            Get Started
-          </button>
-        </div>
-      </section>
-
-      {/* POPULAR */}
-      <section ref={popRef} className="transform opacity-0 translate-y-12 transition-all duration-700 ease-out">
-        <h2 className="text-xl font-black text-gray-900 mb-6 tracking-tight">Popular Nearby</h2>
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(i => <BusinessCardSkeleton key={i} />)}
-          </div>
-        ) : popular.length === 0 ? (
-          <p className="text-sm text-gray-400 font-medium bg-gray-50 p-6 rounded-xl border border-dashed">No active business listings available near you.</p>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5 animate-in fade-in duration-500">
-            {popular.map(biz => <BusinessCard key={biz._id} biz={biz} onClick={onSelectBusiness} />)}
-          </div>
-        )}
-      </section>
     </div>
   );
 };
 
 // --- VIEW: UNIFIED SIGN IN & SIGN UP PORTAL ---
 const LoginView = ({ onLoginSuccess, onNavigate }) => {
-  const [activeTab, setActiveTab] = useState('signin'); // 'signin' | 'signup'
-  const [authRole, setAuthRole] = useState('shopper'); // 'shopper' | 'owner'
+  const [activeTab, setActiveTab] = useState('signin'); 
+  const [authRole, setAuthRole] = useState('shopper'); 
   const [shopperForm, setShopperForm] = useState({ name: '', email: '' });
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);
@@ -296,20 +471,22 @@ const LoginView = ({ onLoginSuccess, onNavigate }) => {
     setAlert(null);
 
     try {
-      const response = await fetch(`${API_BASE}/businesses`);
-      if (!response.ok) throw new Error('Could not contact live database.');
-      const data = await response.json();
-      
       const cleanPhone = phoneNumber.trim().replace(/[^0-9]/g, '');
-      const match = data.find(b => b.phone.replace(/[^0-9]/g, '') === cleanPhone);
+      const response = await fetch(`${API_BASE}/businesses/owner-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone })
+      });
+      
+      const data = await response.json();
 
-      if (match) {
-        const ownerProfile = { ...match, role: 'owner' };
+      if (response.ok && data) {
+        const ownerProfile = { ...data, role: 'owner' };
         onLoginSuccess(ownerProfile);
       } else {
         setAlert({ 
           type: 'error', 
-          message: 'No listed business found matching this phone number. Please sign up and list your business first!' 
+          message: data.message || 'No listed business found matching this phone number. Please sign up and list your business first!' 
         });
       }
     } catch (err) {
@@ -318,7 +495,7 @@ const LoginView = ({ onLoginSuccess, onNavigate }) => {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="max-w-md mx-auto my-16 px-4 md:px-0 animate-in zoom-in-95 duration-300">
       <div className="bg-white rounded-3xl border border-gray-100 p-8 shadow-2xl space-y-6">
@@ -675,7 +852,7 @@ const AdminView = ({ onNavigate }) => {
   const [loading, setLoading] = useState(false);
   const [actionId, setActionId] = useState(null);
   const [alert, setAlert] = useState(null);
-  const [currentTab, setCurrentTab] = useState('overview'); // 'overview' | 'submissions' | 'all' | 'transactions'
+  const [currentTab, setCurrentTab] = useState('overview'); 
   const [cacPreviewUrl, setCacPreviewUrl] = useState(null);
 
   const [statusFilter, setStatusFilter] = useState('');
@@ -713,9 +890,8 @@ const AdminView = ({ onNavigate }) => {
     } catch (err) {
       setAlert({ type: 'error', message: err.message });
       setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
+    } fillAll:
+    setLoading(false);
   };
 
   const handleLogin = (e) => {
@@ -729,7 +905,7 @@ const AdminView = ({ onNavigate }) => {
     setIsAuthenticated(false);
     setBusinesses([]);
     setTransactions([]);
-    onNavigate('home');
+    onNavigate('landing');
   };
 
   useEffect(() => {
@@ -800,7 +976,7 @@ const AdminView = ({ onNavigate }) => {
                 </button>
               </div>
             </div>
-            <button type="submit" className="w-full py-4 bg-[#008751] text-white rounded-xl font-black text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 hover:bg-emerald-600 transition-all">
+            <button type="submit" className="w-full py-4 bg-[#008751] text-white rounded-xl font-black text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 hover:bg-emerald-600 transition-all active:scale-[0.99]">
               Decrypt Command Core <ArrowRight size={16} />
             </button>
           </form>
@@ -1026,7 +1202,7 @@ const AdminView = ({ onNavigate }) => {
                   {biz.status === 'pending' && biz.isPaid && (
                     <div className="flex gap-1.5 border-l pl-3 border-gray-100">
                       <button disabled={actionId === biz._id} onClick={() => runDecisionMatrix(biz._id, 'approve')} className="p-2 bg-emerald-50 hover:bg-emerald-100 text-[#008751] rounded-lg transition-colors"><Check size={14} /></button>
-                      <button disabled={actionId === biz._id} onClick={() => runDecisionMatrix(biz._id, 'reject')} className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"><Ban size={14} /></button>
+                      <button disabled={actionId === biz._id} onClick={() => runDecisionMatrix(biz._id, 'reject')} className="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl transition-colors"><Ban size={14} /></button>
                     </div>
                   )}
                 </div>
@@ -1175,7 +1351,7 @@ const PaymentSuccessView = ({ onNavigate }) => {
           <CheckCircle size={64} className="text-[#008751] mx-auto mb-4 animate-bounce" />
           <h2 className="text-2xl font-black text-gray-900 mb-2">Payment Successful!</h2>
           <p className="text-gray-500 text-sm font-semibold mb-8">Your business has been submitted for admin review. You'll be visible once approved.</p>
-          <button onClick={() => onNavigate('home')} className="bg-[#008751] text-white px-8 py-3 rounded-xl font-bold shadow-md hover:bg-emerald-800 transition-all">Back to Home</button>
+          <button onClick={() => onNavigate('landing')} className="bg-[#008751] text-white px-8 py-3 rounded-xl font-bold shadow-md hover:bg-emerald-800 transition-all">Back to Home</button>
         </>
       )}
       {status === 'error' && (
@@ -1183,332 +1359,17 @@ const PaymentSuccessView = ({ onNavigate }) => {
           <AlertCircle size={64} className="text-red-400 mx-auto mb-4" />
           <h2 className="text-2xl font-black text-gray-900 mb-2">Verification Failed</h2>
           <p className="text-gray-500 text-sm font-semibold mb-8">We couldn't verify your payment. Please contact support with your payment reference.</p>
-          <button onClick={() => onNavigate('home')} className="bg-gray-100 text-gray-600 px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all">Back to Home</button>
+          <button onClick={() => onNavigate('landing')} className="bg-gray-100 text-gray-600 px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition-all">Back to Home</button>
         </>
       )}
     </div>
   );
 };
 
-// --- VIEW: SECRET ADMIN LOGIN PANEL ---
-const AdminLoginView = ({ onAdminLoginSuccess }) => {
-  const [adminPassword, setAdminPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
-
-  const handleAdminLogin = async (e) => {
-    e.preventDefault();
-    if (!adminPassword.trim()) {
-      setAlert({ type: 'error', message: 'Secret admin credential passphrase required.' });
-      return;
-    }
-
-    setLoading(true);
-    setAlert(null);
-
-    try {
-      const res = await fetch(`${API_BASE}/admin/all`, {
-        headers: { 'x-admin-password': adminPassword }
-      });
-      if (!res.ok) throw new Error();
-      onAdminLoginSuccess(adminPassword);
-    } catch {
-      setAlert({ type: 'error', message: 'Halt: Administrative validation failed. Password key is incorrect.' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="max-w-md mx-auto my-20 px-4 md:px-0 animate-in zoom-in-95 duration-300">
-      <div className="bg-slate-950 border border-slate-800 text-white rounded-3xl p-8 shadow-2xl space-y-6">
-        <div className="w-14 h-14 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
-          <ShieldAlert size={28} />
-        </div>
-        <div className="text-center space-y-1">
-          <h2 className="text-2xl font-black tracking-tight text-white">System Admin Vault</h2>
-          <p className="text-xs text-[#008751] font-extrabold uppercase tracking-widest">Platform Command Node</p>
-        </div>
-
-        {alert && <Alert type={alert.type} message={alert.message} />}
-
-        <form onSubmit={handleAdminLogin} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-black tracking-wider uppercase text-slate-400">Security Credentials</label>
-            <div className="relative">
-              <input 
-                type={showPassword ? "text" : "password"} 
-                value={adminPassword}
-                onChange={e => setAdminPassword(e.target.value)}
-                placeholder="Enter Encrypted Secret Key" 
-                className="w-full p-4 pr-12 bg-slate-900 border border-slate-800 rounded-xl font-bold text-sm outline-none text-white focus:border-[#008751] transition-all" 
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-          <button type="submit" disabled={loading} className="w-full py-4 bg-[#008751] text-white rounded-xl font-black text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 hover:bg-emerald-600 transition-all active:scale-[0.99] disabled:opacity-60">
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <>Decrypt Server Dashboard <ArrowRight size={16} /></>}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-// --- VIEW: SUBMIT BUSINESS ---
-const SubmitView = () => {
-  const [step, setStep] = useState(1);
-  const [selectedPlan, setSelectedPlan] = useState('basic');
-  const [submitting, setSubmitting] = useState(false);
-  const [alert, setAlert] = useState(null);
-  const shopPhotoInputRef = useRef(null);
-  const certInputRef = useRef(null);
-
-  const [form, setForm] = useState({
-    name: '', category: 'fashion', city: '', address: '',
-    description: '', phone: '', whatsapp: '',
-    openTime: '', closeTime: '',
-  });
-
-  const [shopPhoto, setShopPhoto] = useState(null);
-  const [shopPhotoPreview, setShopPhotoPreview] = useState('');
-  const [certificate, setCertificate] = useState(null);
-  const [certificateName, setCertificateName] = useState('');
-
-  const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
-  const handleShopPhoto = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setShopPhoto(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setShopPhotoPreview(ev.target.result);
-    reader.readAsDataURL(file);
-  };
-
-  const handleCertificate = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setCertificate(file);
-    setCertificateName(file.name);
-  };
-
-  const handleRegister = async () => {
-    if (!form.name || !form.city || !form.address || !form.phone || !form.openTime || !form.closeTime || !form.description) {
-      setAlert({ type: 'error', message: 'Please fill in all required fields.' });
-      return;
-    }
-    setAlert(null);
-    setStep(2);
-  };
-
-  const handleMediaNext = () => {
-    if (!shopPhoto) {
-      setAlert({ type: 'error', message: 'Please upload a shop cover photo.' });
-      return;
-    }
-    setAlert(null);
-    setStep(3);
-  };
-
-  const handleSubmitAndPay = async () => {
-    setSubmitting(true);
-    setAlert(null);
-
-    try {
-      const uploadData = new FormData();
-      uploadData.append('shopPhoto', shopPhoto);
-      if (certificate) {
-        uploadData.append('certificate', certificate);
-      }
-
-      const uploadRes = await fetch(`${API_BASE}/upload`, {
-        method: 'POST',
-        body: uploadData,
-      });
-
-      if (!uploadRes.ok) {
-        let errorMsg = 'Media upload pipeline failed.';
-        try {
-          const uploadErr = await uploadRes.json();
-          errorMsg = uploadErr.message || (uploadErr.error ? `${uploadErr.message}: ${uploadErr.error}` : errorMsg);
-        } catch {
-          errorMsg = `Server returned status code ${uploadRes.status} during file processing.`;
-        }
-        throw new Error(errorMsg);
-      }
-
-      const mediaUrls = await uploadRes.json();
-
-      const registerRes = await fetch(`${API_BASE}/businesses/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          plan: selectedPlan,
-          shopPhoto: mediaUrls.shopPhoto,
-          certificate: mediaUrls.certificate || null,
-        }),
-      });
-
-      const registerData = await registerRes.json();
-      if (!registerRes.ok) {
-        throw new Error(registerData.message || 'Registration failed');
-      }
-
-      const savedBusinessId = registerData._id;
-
-      const email = form.phone.replace(/[^0-9]/g, '') + '@naijabizfind.com';
-      const payRes = await fetch(`${API_BASE}/payments/initialize`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessId: savedBusinessId, email }),
-      });
-
-      const payData = await payRes.json();
-      if (!payRes.ok) {
-        throw new Error(payData.message || 'Payment initialization failed');
-      }
-
-      window.location.href = payData.authorization_url;
-
-    } catch (err) {
-      setAlert({ type: 'error', message: err.message || 'Something went wrong. Please try again.' });
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="max-w-3xl mx-auto px-4 md:px-6 py-10 animate-in zoom-in-95 duration-500">
-      <div className="bg-white rounded-3xl border border-gray-100 p-6 md:p-12 shadow-2xl">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">Register Your Business</h2>
-            <p className="text-xs md:text-sm text-gray-400 font-bold mt-1">Step {step} of 3</p>
-          </div>
-          <div className="flex gap-2">
-            {[1, 2, 3].map(s => (
-              <div key={s} className={`h-1.5 w-6 md:w-10 rounded-full transition-all duration-500 ${step >= s ? 'bg-[#008751]' : 'bg-gray-100'}`} />
-            ))}
-          </div>
-        </div>
-
-        {alert && <div className="mb-4"><Alert type={alert.type} message={alert.message} /></div>}
-
-        {step === 1 && (
-          <div className="space-y-4 animate-in slide-in-from-right-4 duration-300">
-            <input name="name" value={form.name} onChange={handleChange} type="text" className="w-full p-3.5 md:p-4 bg-gray-50/50 rounded-xl border border-gray-200 focus:border-[#008751] focus:bg-white focus:ring-0 font-bold text-sm outline-none transition-colors" placeholder="Business Name *" />
-            <div className="grid grid-cols-2 gap-4">
-              <select name="category" value={form.category} onChange={handleChange} className="w-full p-3.5 md:p-4 bg-gray-50/50 rounded-xl border border-gray-200 focus:bg-white font-bold text-sm outline-none transition-colors">
-                {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.name}</option>)}
-              </select>
-              <input name="city" value={form.city} onChange={handleChange} type="text" className="w-full p-3.5 md:p-4 bg-gray-50/50 rounded-xl border border-gray-200 focus:border-[#008751] focus:bg-white font-bold text-sm outline-none transition-colors" placeholder="City *" />
-            </div>
-            <input name="address" value={form.address} onChange={handleChange} type="text" className="w-full p-3.5 md:p-4 bg-gray-50/50 rounded-xl border border-gray-200 focus:border-[#008751] focus:bg-white font-bold text-sm outline-none transition-colors" placeholder="Street Address *" />
-            <input name="phone" value={form.phone} onChange={handleChange} type="tel" className="w-full p-3.5 md:p-4 bg-gray-50/50 rounded-xl border border-gray-200 focus:border-[#008751] focus:bg-white font-bold text-sm outline-none transition-colors" placeholder="Phone Number * (e.g. +234 803 123 4567)" />
-            <input name="whatsapp" value={form.whatsapp} onChange={handleChange} type="tel" className="w-full p-3.5 md:p-4 bg-gray-50/50 rounded-xl border border-gray-200 focus:border-[#008751] focus:bg-white font-bold text-sm outline-none transition-colors" placeholder="WhatsApp Number (optional — defaults to phone)" />
-            <div className="grid grid-cols-2 gap-4">
-              <input name="openTime" value={form.openTime} onChange={handleChange} type="text" className="w-full p-3.5 bg-gray-50/50 rounded-xl border border-gray-200 focus:border-[#008751] focus:bg-white font-bold text-sm outline-none transition-colors" placeholder="Opens at (e.g. 8am) *" />
-              <input name="closeTime" value={form.closeTime} onChange={handleChange} type="text" className="w-full p-3.5 bg-gray-50/50 rounded-xl border border-gray-200 focus:border-[#008751] focus:bg-white font-bold text-sm outline-none transition-colors" placeholder="Closes at (e.g. 6pm) *" />
-            </div>
-            <textarea name="description" value={form.description} onChange={handleChange} rows="3" className="w-full p-3.5 md:p-4 bg-gray-50/50 rounded-xl border border-gray-200 focus:border-[#008751] focus:bg-white font-bold text-sm resize-none outline-none transition-colors" placeholder="Short Description of your business *" />
-            <button onClick={handleRegister} className="w-full py-4 md:py-5 bg-[#008751] text-white rounded-xl md:rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 hover:bg-emerald-800 active:scale-[0.99] transition-all">
-              Next: Media Upload <ChevronRight size={20} />
-            </button>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
-            <div className="space-y-4">
-              <input ref={shopPhotoInputRef} type="file" accept="image/*" className="hidden" onChange={handleShopPhoto} />
-              <div onClick={() => shopPhotoInputRef.current.click()} className="border-2 border-dashed border-gray-200 bg-gray-50/50 rounded-2xl p-8 flex flex-col items-center justify-center text-gray-400 hover:border-[#008751] hover:bg-white transition-all cursor-pointer group overflow-hidden">
-                {shopPhotoPreview ? (
-                  <img src={shopPhotoPreview} alt="Preview" className="w-full h-40 object-cover rounded-xl shadow" />
-                ) : (
-                  <>
-                    <Camera size={32} className="mb-2 group-hover:scale-110 text-gray-400 group-hover:text-[#008751] transition-all duration-300" />
-                    <span className="text-xs font-black text-gray-600">Upload Shop Cover Photo (Required)</span>
-                    <span className="text-[10px] text-gray-400 mt-1">JPG, PNG up to 5MB</span>
-                  </>
-                )}
-              </div>
-
-              <input ref={certInputRef} type="file" accept="image/*,application/pdf" className="hidden" onChange={handleCertificate} />
-              <div onClick={() => certInputRef.current.click()} className="border-2 border-dashed border-gray-200 bg-gray-50/30 rounded-2xl p-6 flex items-center gap-4 text-gray-400 hover:border-[#008751] hover:bg-white transition-all cursor-pointer group">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-100 shadow-sm">
-                  <FileText size={20} className={certificate ? 'text-[#008751]' : 'text-gray-400 group-hover:text-[#008751] transition-colors'} />
-                </div>
-                <div className="flex-1">
-                  <span className="text-xs font-black block text-gray-600">Business Certificate / CAC (Optional)</span>
-                  {certificateName && <span className="text-[10px] text-[#008751] font-bold mt-0.5 block animate-in fade-in">{certificateName}</span>}
-                </div>
-                <Upload size={18} className="text-gray-400 group-hover:text-[#008751] transition-colors" />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="flex-1 py-4 bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl font-black transition-colors">Back</button>
-              <button onClick={handleMediaNext} className="flex-[2] py-4 bg-[#008751] text-white rounded-xl font-black shadow-lg hover:bg-emerald-800 active:scale-[0.99] transition-all">Next: Select Plan</button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div onClick={() => setSelectedPlan('basic')} className={`p-6 rounded-2xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${selectedPlan === 'basic' ? 'border-[#008751] bg-emerald-50/50 shadow-md' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
-                <ShieldCheck size={24} className={selectedPlan === 'basic' ? 'text-[#008751]' : 'text-gray-300'} />
-                <span className="font-black text-gray-900 block mt-3 text-base">Basic Listing</span>
-                <div className="text-2xl font-black text-gray-900 mt-1">₦5,000</div>
-                <p className="text-xs text-gray-500 mt-1 font-medium">12-month listing, standard placement</p>
-              </div>
-
-              <div onClick={() => setSelectedPlan('featured')} className={`p-6 rounded-2xl border-2 cursor-pointer transition-all transform hover:scale-[1.02] ${selectedPlan === 'featured' ? 'border-[#FFC107] bg-amber-50/50 shadow-md' : 'border-gray-100 bg-white hover:border-gray-200'}`}>
-                <Zap size={24} className={selectedPlan === 'featured' ? 'text-[#FFC107]' : 'text-gray-300'} />
-                <span className="font-black text-gray-900 block mt-3 text-base">Featured Placement</span>
-                <div className="text-2xl font-black text-gray-900 mt-1">₦10,000</div>
-                <p className="text-xs text-gray-500 mt-1 font-medium">Priority placement, homepage visibility</p>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-2xl p-5 text-sm space-y-2 border border-gray-100">
-              <div className="flex justify-between font-bold text-gray-600"><span>Business</span><span className="text-gray-900 truncate max-w-[180px]">{form.name}</span></div>
-              <div className="flex justify-between font-bold text-gray-600"><span>Plan Package</span><span className="capitalize text-[#008751] font-black bg-emerald-50 px-2 py-0.5 rounded text-xs">{selectedPlan}</span></div>
-              <div className="flex justify-between font-black text-base text-gray-900 pt-3 border-t border-gray-200/60 mt-2"><span>Total Due</span><span className="text-[#008751]">₦{selectedPlan === 'featured' ? '10,000' : '5,000'}</span></div>
-            </div>
-
-            <div className="flex flex-col md:flex-row gap-3">
-              <button onClick={() => setStep(2)} className="w-full md:w-1/3 py-4 bg-gray-50 hover:bg-gray-100 text-gray-400 rounded-xl font-black transition-colors" disabled={submitting}>Back</button>
-              <button onClick={handleSubmitAndPay} disabled={submitting} className="w-full md:w-2/3 py-4 bg-[#008751] text-white rounded-xl font-black shadow-xl flex items-center justify-center gap-2 disabled:opacity-60 hover:bg-emerald-800 active:scale-[0.99] transition-all">
-                {submitting ? <><RefreshCw size={18} className="animate-spin" /> Processing Infrastructure...</> : 'Pay & List Business'}
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-// --- Dummy components to prevent rendering context faults ---
-const DirectoryView = ({ onSelectBusiness }) => <div className="max-w-7xl mx-auto px-4 py-10 text-center font-bold">Directory Content Workspace Panel</div>;
-const DetailView = ({ business, onBack }) => <div className="max-w-4xl mx-auto px-4 py-10 text-center font-bold">Business Detailed Specifications Node</div>;
-
-// --- MAIN APP ---
+// --- MAIN APP ENTRY ---
 export default function App() {
   const [page, setPage] = useState(() => {
-    // Synchronize route segment matching cleanly on load
-    if (window.location.pathname === STEALTH_ADMIN_PATH) {
+    if (window.location.pathname === STEALTH_ADMIN_PATH || window.location.pathname === '/admin/dashboard') {
       return 'admin-login';
     }
     if (window.location.pathname === '/payment-success' ||
@@ -1516,20 +1377,18 @@ export default function App() {
         window.location.search.includes('trxref')) {
       return 'payment-success';
     }
-    return 'home'; // Clean Fix: Defaults straight onto the active business searching view!
+    return 'landing'; 
   });
 
   const [selectedBiz, setSelectedBiz] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [directoryOptions, setDirectoryOptions] = useState({});
 
-  // Active Session Persistence for Business Owners
   const [currentOwnerProfile, setCurrentOwnerProfile] = useState(() => {
     const cached = sessionStorage.getItem('naija_owner_session');
     return cached ? JSON.parse(cached) : null;
   });
 
-  // Regular Shopper Guest Session
   const [currentShopper, setCurrentShopper] = useState(() => {
     const cached = sessionStorage.getItem('naija_shopper_session');
     return cached ? JSON.parse(cached) : null;
@@ -1553,11 +1412,11 @@ export default function App() {
     if (profile.role === 'owner') {
       sessionStorage.setItem('naija_owner_session', JSON.stringify(profile));
       setCurrentOwnerProfile(profile);
-      navigate('owner-dashboard');
+      window.location.href = '/dashboard'; // Navigates seamlessly to standalone OwnerDashboard
     } else {
       sessionStorage.setItem('naija_shopper_session', JSON.stringify(profile));
       setCurrentShopper(profile);
-      navigate('home'); // Clean Fix: Drops normal shoppers directly into the home metrics feed
+      navigate('home'); 
     }
   };
 
@@ -1566,10 +1425,9 @@ export default function App() {
     sessionStorage.removeItem('naija_shopper_session');
     setCurrentOwnerProfile(null);
     setCurrentShopper(null);
-    navigate('home'); // Clean Fix: Redirects cleanly onto default public browsing view instead of landing layout
+    navigate('landing');
   };
 
-  // Easter Egg click tracker
   const [logoClicks, setLogoClicks] = useState(0);
   const handleLogoClick = () => {
     setLogoClicks(prev => {
@@ -1597,13 +1455,13 @@ export default function App() {
           </div>
           
           <div className="hidden md:flex gap-8 items-center">
-            <button onClick={() => navigate('home')} className={`text-[11px] font-black transition-colors tracking-wide ${page === 'home' ? 'text-[#008751]' : 'text-gray-400 hover:text-gray-600'}`}>HOME</button>
-            <button onClick={() => navigate('directory')} className={`text-[11px] font-black transition-colors tracking-wide ${page === 'directory' ? 'text-[#008751]' : 'text-gray-400 hover:text-gray-600'}`}>DIRECTORY</button>
+            <button onClick={() => navigate('landing')} className={`text-[11px] font-black transition-colors tracking-wide ${page === 'landing' ? 'text-[#008751]' : 'text-gray-400 hover:text-gray-600'}`}>HOME</button>
+            <button onClick={() => navigate('home')} className={`text-[11px] font-black transition-colors tracking-wide ${page === 'home' ? 'text-[#008751]' : 'text-gray-400 hover:text-gray-600'}`}>EXPLORE</button>
             
             {isAdminAuthenticated ? (
               <button onClick={() => navigate('admin')} className="bg-slate-900 text-white px-5 py-2.5 rounded-lg text-xs font-black shadow-md flex items-center gap-1.5 hover:bg-slate-800 transition-colors"><LayoutDashboard size={14} /> Control Centre</button>
             ) : isUserAuthenticated ? (
-              <button onClick={() => navigate('owner-dashboard')} className="bg-[#008751] text-white px-5 py-2.5 rounded-lg text-xs font-black shadow-md flex items-center gap-1.5 hover:bg-emerald-800 transition-colors"><VerifiedIcon size={14} /> My Dashboard</button>
+              <button onClick={() => window.location.href = '/dashboard'} className="bg-[#008751] text-white px-5 py-2.5 rounded-lg text-xs font-black shadow-md flex items-center gap-1.5 hover:bg-emerald-800 transition-colors"><VerifiedIcon size={14} /> My Dashboard</button>
             ) : isShopperAuthenticated ? (
               <div className="flex gap-4 items-center">
                 <span className="text-xs font-black text-[#008751]">Hi, {currentShopper.name}</span>
@@ -1611,8 +1469,8 @@ export default function App() {
               </div>
             ) : (
               <div className="flex gap-3">
-                <button onClick={() => navigate('login')} className="border border-gray-200 text-gray-600 px-5 py-2 rounded-lg text-xs font-black hover:bg-gray-50 transition-colors">LOGIN</button>
-                <button onClick={() => navigate('submit')} className="bg-[#008751] text-white px-5 py-2 rounded-lg text-xs font-black shadow-md hover:bg-emerald-800 hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all">List Business</button>
+                <button onClick={() => window.location.href = '/login'} className="border border-gray-200 text-gray-600 px-5 py-2 rounded-lg text-xs font-black hover:bg-gray-50 transition-colors">LOGIN</button>
+                <button onClick={() => window.location.href = '/signup'} className="bg-[#008751] text-white px-5 py-2 rounded-lg text-xs font-black shadow-md hover:bg-emerald-800 hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all">Submit Your Business</button>
               </div>
             )}
           </div>
@@ -1620,11 +1478,11 @@ export default function App() {
         </div>
         {isMenuOpen && (
           <div className="absolute top-full left-0 w-full bg-white border-b border-gray-100 p-6 flex flex-col gap-4 shadow-xl md:hidden animate-in slide-in-from-top-4 duration-200">
-            <button onClick={() => navigate('home')} className="text-left font-black text-[11px] uppercase tracking-widest text-gray-655 py-2 border-b border-gray-50">Home</button>
-            <button onClick={() => navigate('directory')} className="text-left font-black text-[11px] uppercase tracking-widest text-gray-655 py-2 border-b border-gray-50">Browse Directory</button>
+            <button onClick={() => navigate('landing')} className="text-left font-black text-[11px] uppercase tracking-widest text-gray-655 py-2 border-b border-gray-50">Home</button>
+            <button onClick={() => navigate('home')} className="text-left font-black text-[11px] uppercase tracking-widest text-gray-655 py-2 border-b border-gray-50">Explore</button>
             
             {isUserAuthenticated ? (
-              <button onClick={() => navigate('owner-dashboard')} className="w-full bg-[#008751] text-white py-4 rounded-xl font-black uppercase text-xs mt-2 shadow-lg">My Dashboard</button>
+              <button onClick={() => window.location.href = '/dashboard'} className="w-full bg-[#008751] text-white py-4 rounded-xl font-black uppercase text-xs mt-2 shadow-lg">My Dashboard</button>
             ) : isAdminAuthenticated ? (
               <button onClick={() => navigate('admin')} className="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase text-xs mt-2 shadow-lg">Control Centre</button>
             ) : isShopperAuthenticated ? (
@@ -1634,8 +1492,8 @@ export default function App() {
               </div>
             ) : (
               <div className="flex flex-col gap-2 pt-2">
-                <button onClick={() => navigate('login')} className="w-full border border-gray-200 text-gray-700 py-3.5 rounded-xl font-black uppercase text-xs">Sign In</button>
-                <button onClick={() => navigate('submit')} className="w-full bg-[#008751] text-white py-3.5 rounded-xl font-black uppercase text-xs shadow-lg">List My Business</button>
+                <button onClick={() => window.location.href = '/login'} className="w-full border border-gray-200 text-gray-700 py-3.5 rounded-xl font-black uppercase text-xs">Sign In</button>
+                <button onClick={() => window.location.href = '/signup'} className="w-full bg-[#008751] text-white py-3.5 rounded-xl font-black uppercase text-xs shadow-lg">Submit Your Business</button>
               </div>
             )}
           </div>
@@ -1644,16 +1502,16 @@ export default function App() {
 
       {/* PAGE ROUTER */}
       <main>
-        {page === 'home' && <HomeView onNavigate={navigate} onSelectBusiness={handleSelectBusiness} />}
-        {page === 'directory' && <DirectoryView onSelectBusiness={handleSelectBusiness} initialCategory={directoryOptions.category} />}
-        {page === 'detail' && <DetailView business={selectedBiz} onBack={() => navigate('directory')} />}
+        {page === 'landing' && <LandingView onNavigate={navigate} />}
+        {page === 'home' && <HomeView onNavigate={navigate} onSelectBusiness={handleSelectBusiness} initialCategory={directoryOptions.category} />}
+        {page === 'detail' && <DetailView business={selectedBiz} onBack={() => navigate('home')} />}
         {page === 'submit' && <SubmitView />}
         {page === 'about' && <AboutView />}
         {page === 'privacy' && <PrivacyView />}
         {page === 'terms' && <TermsView />}
         {page === 'payment-success' && <PaymentSuccessView onNavigate={navigate} />}
         {page === 'login' && <LoginView onLoginSuccess={handleUserLoginSuccess} onNavigate={navigate} />}
-        {page === 'owner-dashboard' && isUserAuthenticated && <OwnerDashboardView business={currentOwnerProfile} onSignOut={handleUserSignOut} />}
+        {page === 'owner-dashboard' && <OwnerDashboardView business={currentOwnerProfile} onSignOut={handleUserSignOut} />}
         {page === 'admin-login' && <AdminLoginView onAdminLoginSuccess={(pass) => { sessionStorage.setItem('naija_admin_pass', pass); navigate('admin'); }} />}
         {page === 'admin' && <AdminView onNavigate={navigate} />}
       </main>
@@ -1701,6 +1559,14 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Core Platform Style Injectors */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}} />
     </div>
   );
 }
