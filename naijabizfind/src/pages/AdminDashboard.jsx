@@ -3,11 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ShieldAlert, Users, Store, CheckCircle, XCircle, LogOut, Activity, 
   Database, ChevronRight, Loader2, Clock, MapPin, Phone, Eye, Check, 
-  Ban, TrendingUp, Zap, ShieldCheck, FileSpreadsheet, CreditCard, FileText, X, Mail, ShieldAlert as BlacklistIcon
+  Ban, TrendingUp, Zap, ShieldCheck, FileSpreadsheet, CreditCard, FileText, X, Mail, EyeOff, ArrowRight, ShieldAlert as BlacklistIcon
 } from 'lucide-react';
 
-// ✅ FIX: Synced admin panel API base explicitly with your active production cluster
-const API_BASE = 'https://naijabizfind.onrender.com/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://naijabizfind.onrender.com/api';
 
 const getShopPhoto = (biz) => biz?.images?.shopPhoto || biz?.shopPhoto || '';
 const getCertPhoto = (biz) => biz?.images?.certificate || biz?.certificate || '';
@@ -76,7 +75,14 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
 
-  // Core Orchestration States
+  // Authentication & Gatekeeper States
+  const [adminToken, setAdminToken] = useState(() => localStorage.getItem('adminKey') || '');
+  const [isPromptOpen, setIsPromptOpen] = useState(() => !localStorage.getItem('adminKey'));
+  const [promptPassword, setPromptPassword] = useState('');
+  const [showPromptPass, setShowPromptPass] = useState(false);
+  const [authError, setAuthError] = useState('');
+
+  // Core Tab Orchestration States
   const [currentTab, setCurrentTab] = useState('overview'); 
   const [isFetchingData, setIsFetchingData] = useState(true);
   const [actionInProgress, setActionInProgress] = useState(null);
@@ -104,40 +110,61 @@ export default function AdminDashboard() {
   }, []);
 
   // Hydrate Control Center with Secure Network Requests
-  const loadControlCenterData = async () => {
+  const loadControlCenterData = async (targetToken = adminToken) => {
+    if (!targetToken) {
+      setIsFetchingData(false);
+      return;
+    }
     setIsFetchingData(true);
+    setAuthError('');
     try {
-      const adminSecret = localStorage.getItem('adminKey') || '';
       const requestHeaders = {
         'Content-Type': 'application/json',
-        'x-admin-password': adminSecret
+        'x-admin-password': targetToken
       };
 
       // 1. Fetch ALL businesses for complete visibility filtering logs
       const allRes = await fetch(`${API_BASE}/admin/all`, { headers: requestHeaders });
+      if (allRes.status === 401) {
+        throw new Error('Verification Denied: Admin encryption key mismatched.');
+      }
       const allData = await allRes.json();
-      if (allRes.ok) setBusinesses(allData);
+      if (allRes.ok) setBusinesses(Array.isArray(allData) ? allData : []);
 
       // 2. Extract Complete Financial Transaction Log Ledger Books
       const transRes = await fetch(`${API_BASE}/admin/transactions`, { headers: requestHeaders });
       const transData = await transRes.json();
-      if (transRes.ok) setTransactions(transData);
+      if (transRes.ok) setTransactions(Array.isArray(transData) ? transData : []);
 
       // 3. Fetch Master List of Registered Platform Users
       const usersRes = await fetch(`${API_BASE}/admin/users`, { headers: requestHeaders });
       const usersData = await usersRes.json();
-      if (usersRes.ok) setUsersList(usersData);
+      if (usersRes.ok) setUsersList(Array.isArray(usersData) ? usersData : []);
 
+      // If all requests pass, close prompt lock completely
+      setIsPromptOpen(false);
     } catch (err) {
-      console.error("Failed to synchronize admin command center nodes:", err);
+      console.error("Administrative authentication clearance failure:", err);
+      setAuthError(err.message || 'Verification Error.');
+      setIsPromptOpen(true);
     } finally {
       setIsFetchingData(false);
     }
   };
 
   useEffect(() => {
-    loadControlCenterData();
-  }, []);
+    if (adminToken) {
+      loadControlCenterData(adminToken);
+    }
+  }, [adminToken]);
+
+  const handlePromptSubmit = (e) => {
+    e.preventDefault();
+    if (!promptPassword.trim()) return;
+    localStorage.setItem('adminKey', promptPassword.trim());
+    setAdminToken(promptPassword.trim());
+    loadControlCenterData(promptPassword.trim());
+  };
 
   // Smart Logout Function
   const handleLogout = () => {
@@ -154,7 +181,7 @@ export default function AdminDashboard() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-password': localStorage.getItem('adminKey') || ''
+          'x-admin-password': adminToken
         },
         body: JSON.stringify({ reason: "Listing verified against community index." })
       });
@@ -172,7 +199,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // Live Blacklist / Account Deactivation Toggle Engine
+  // Live Blacklist Toggle Engine
   const toggleUserBlacklist = async (id, currentRole) => {
     setActionInProgress(id);
     const targetAction = currentRole === 'blacklisted' ? 'activate' : 'blacklist';
@@ -183,12 +210,11 @@ export default function AdminDashboard() {
     }
 
     try {
-      const adminSecret = localStorage.getItem('adminKey') || '';
       const res = await fetch(`${API_BASE}/admin/users/blacklist/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-password': adminSecret
+          'x-admin-password': adminToken
         }
       });
       const data = await res.json();
@@ -207,21 +233,22 @@ export default function AdminDashboard() {
     }
   };
 
-  // Metric computations for command Overview tab derived completely from state layers
-  const totalRevenue = transactions.filter(t => t.status === 'success').reduce((sum, t) => sum + (t.amount || 0), 0);
-  const pendingApprovalsCount = businesses.filter(b => b.status === 'pending' && b.isPaid).length;
-  const activeListingsCount = businesses.filter(b => b.status === 'approved' && b.isPaid).length;
+  const totalRevenue = transactions.filter(t => t?.status === 'success').reduce((sum, t) => sum + (t?.amount || 0), 0);
+  const pendingApprovalsCount = businesses.filter(b => b?.status === 'pending' && b?.isPaid).length;
+  const activeListingsCount = businesses.filter(b => b?.status === 'approved' && b?.isPaid).length;
 
-  // Filter listings across master tables cleanly
   const filteredBusinesses = businesses.filter(b => {
+    if (!b) return false;
     const matchesStatus = statusFilter === '' || b.status === statusFilter;
     const matchesPayment = paymentFilter === '' || (paymentFilter === 'paid' ? b.isPaid : !b.isPaid);
-    const matchesSearch = searchQuery === '' || b.name?.toLowerCase().includes(searchQuery.toLowerCase()) || b.city?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = searchQuery === '' || 
+      b.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      b.city?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesPayment && matchesSearch;
   });
 
-  // Filter accounts list across dataset matrices cleanly
   const filteredUsers = usersList.filter(u => {
+    if (!u) return false;
     const matchesRole = userRoleFilter === '' || u.role === userRoleFilter;
     const matchesSearch = userSearchQuery === '' || 
       u.username?.toLowerCase().includes(userSearchQuery.toLowerCase()) || 
@@ -229,6 +256,62 @@ export default function AdminDashboard() {
       u.phone?.includes(userSearchQuery);
     return matchesRole && matchesSearch;
   });
+
+  if (isPromptOpen) {
+    return (
+      <div className="min-h-screen bg-[#060606] flex items-center justify-center p-4 text-white font-sans relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+          <div className="absolute w-96 h-96 bg-red-600/10 rounded-full blur-3xl -top-20 -left-20 animate-pulse"></div>
+          <div className="absolute w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl bottom-10 right-10 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        </div>
+
+        <div className="relative z-10 w-full max-w-md bg-gray-900/90 backdrop-blur-xl border border-gray-800 rounded-3xl p-8 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-300">
+          <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl flex items-center justify-center mx-auto shadow-xl">
+            <ShieldAlert size={32} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black tracking-tight">Security Command Vault</h2>
+            <p className="text-xs text-red-400 font-extrabold mt-1.5 uppercase tracking-widest">Platform Core Authorization</p>
+          </div>
+
+          {authError && (
+            <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold p-3 rounded-xl flex items-center justify-center gap-2 animate-in fade-in">
+              <XCircle size={14} /> {authError}
+            </div>
+          )}
+
+          <form onSubmit={handlePromptSubmit} className="space-y-4 text-left">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black tracking-wider uppercase text-gray-400">Encryption Passphrase</label>
+              <div className="relative">
+                <input 
+                  type={showPromptPass ? "text" : "password"}
+                  value={promptPassword}
+                  onChange={e => setPromptPassword(e.target.value)}
+                  placeholder="Enter Server ADMIN_PASSWORD" 
+                  required
+                  className="w-full p-4 pr-12 bg-black/40 border border-gray-800 rounded-xl font-bold text-sm outline-none text-white focus:border-red-500 transition-all" 
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPromptPass(!showPromptPass)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                >
+                  {showPromptPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            <button type="submit" className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
+              Decrypt Dashboard Core <ArrowRight size={16} />
+            </button>
+            <button type="button" onClick={() => navigate('/login')} className="w-full text-center text-xs font-bold text-gray-500 hover:text-white pt-2 transition-colors">
+              Return to regular login portal
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex relative overflow-hidden font-sans text-white">
@@ -345,19 +428,19 @@ export default function AdminDashboard() {
                 <div>
                   <div className="flex justify-between text-xs font-bold text-gray-300 mb-1">
                     <span>Business Storefront Owners</span>
-                    <span>{usersList.filter(u => u.role === 'owner').length} listings</span>
+                    <span>{usersList.filter(u => u?.role === 'owner').length} profile nodes</span>
                   </div>
                   <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-amber-500 h-full w-[45%]" />
+                    <div className="bg-amber-500 h-full rounded-full w-[45%]" />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs font-bold text-gray-300 mb-1">
                     <span>Explorer Consumers</span>
-                    <span>{usersList.filter(u => u.role === 'user').length} accounts</span>
+                    <span>{usersList.filter(u => u?.role === 'user').length} accounts</span>
                   </div>
                   <div className="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-blue-500 h-full w-[75%]" />
+                    <div className="bg-blue-500 h-full rounded-full w-[75%]" />
                   </div>
                 </div>
               </div>
@@ -372,7 +455,7 @@ export default function AdminDashboard() {
           <div className="bg-gray-900/60 backdrop-blur-md border border-gray-800 rounded-3xl p-8 shadow-2xl animate-[fadeInUp_0.5s_ease-out]">
             {isFetchingData ? (
               <div className="flex justify-center p-12"><Loader2 className="animate-spin text-red-500" size={32} /></div>
-            ) : businesses.filter(b => b.status === 'pending' && b.isPaid).length === 0 ? (
+            ) : businesses.filter(b => b?.status === 'pending' && b?.isPaid).length === 0 ? (
               <div className="text-center py-12 border border-dashed border-gray-800 rounded-2xl">
                 <CheckCircle className="mx-auto text-green-500 mb-4" size={40} />
                 <p className="text-gray-400 font-bold">All audits cleared!</p>
@@ -380,7 +463,7 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div className="space-y-4">
-                {businesses.filter(b => b.status === 'pending' && b.isPaid).map((business) => (
+                {businesses.filter(b => b?.status === 'pending' && b?.isPaid).map((business) => (
                   <div key={business._id} className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-5 bg-black/40 border border-gray-800 rounded-2xl hover:border-gray-700 transition-colors gap-6 group">
                     <div className="flex items-start gap-4 flex-1">
                       <div className="w-16 h-16 bg-gray-800 rounded-xl flex items-center justify-center overflow-hidden border border-gray-700 flex-shrink-0">
@@ -531,17 +614,17 @@ export default function AdminDashboard() {
                 </div>
               ) : (
                 filteredUsers.map(user => (
-                  <div key={user._id} className={`p-5 bg-gray-900/40 border rounded-2xl flex flex-col justify-between hover:shadow-xl transition-all space-y-4 ${user.role === 'blacklisted' ? 'border-red-900/50 hover:border-red-800' : 'border-gray-800 hover:border-gray-700'}`}>
+                  <div key={user._id} className={`p-5 bg-gray-900/40 border rounded-2xl flex flex-col justify-between hover:shadow-xl transition-all space-y-4 ${user?.role === 'blacklisted' ? 'border-red-900/50 hover:border-red-800' : 'border-gray-800 hover:border-gray-700'}`}>
                     <div className="space-y-3">
                       <div className="flex justify-between items-start gap-2">
                         <h4 className="font-bold text-white text-base tracking-tight truncate max-w-[65%]">{user.username}</h4>
                         <span className={`px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider border ${
-                          user.role === 'admin' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                          user.role === 'owner' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                          user.role === 'blacklisted' ? 'bg-red-900/30 text-red-500 border-red-900/40 animate-pulse' :
+                          user?.role === 'admin' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                          user?.role === 'owner' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                          user?.role === 'blacklisted' ? 'bg-red-900/30 text-red-500 border-red-900/40 animate-pulse' :
                           'bg-blue-500/10 text-blue-400 border-blue-500/20'
                         }`}>
-                          {user.role === 'owner' ? 'Business Owner' : user.role === 'admin' ? 'System Admin' : user.role === 'blacklisted' ? 'Blacklisted' : 'Explorer'}
+                          {user?.role === 'owner' ? 'Business Owner' : user?.role === 'admin' ? 'System Admin' : user?.role === 'blacklisted' ? 'Blacklisted' : 'Explorer'}
                         </span>
                       </div>
                       <div className="space-y-1.5 text-xs text-gray-400 font-medium">
@@ -553,19 +636,19 @@ export default function AdminDashboard() {
                       <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
                         Joined: {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
                       </span>
-                      {user.role !== 'admin' && (
+                      {user?.role !== 'admin' && (
                         <button 
                           disabled={actionInProgress === user._id}
                           onClick={() => toggleUserBlacklist(user._id, user.role)}
                           className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide flex items-center gap-1 transition-all ${
-                            user.role === 'blacklisted' 
+                            user?.role === 'blacklisted' 
                               ? 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500 hover:text-white' 
                               : 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white'
                           }`}
                         >
                           {actionInProgress === user._id ? (
                             <Loader2 size={12} className="animate-spin" />
-                          ) : user.role === 'blacklisted' ? (
+                          ) : user?.role === 'blacklisted' ? (
                             <>Unban Account</>
                           ) : (
                             <><BlacklistIcon size={12} /> Blacklist</>
@@ -581,7 +664,7 @@ export default function AdminDashboard() {
         )}
 
         {/* =========================================
-            TAB 5: LEDGER SETTLEMENT TRANSACTIONS
+            TAB 5: TRANSACTION SETTLEMENT LEDGERS
         ============================================= */}
         {currentTab === 'transactions' && (
           <div className="space-y-6 animate-[fadeInUp_0.5s_ease-out]">
