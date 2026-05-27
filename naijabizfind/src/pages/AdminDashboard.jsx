@@ -6,7 +6,7 @@ import {
   Ban, TrendingUp, Zap, ShieldCheck, FileSpreadsheet, CreditCard, FileText, X, Mail, EyeOff, ArrowRight, ShieldAlert as BlacklistIcon
 } from 'lucide-react';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://naijabizfind.onrender.com/api';
+const API_BASE = 'https://naijabizfind.onrender.com/api';
 
 const getShopPhoto = (biz) => biz?.images?.shopPhoto || biz?.shopPhoto || '';
 const getCertPhoto = (biz) => biz?.images?.certificate || biz?.certificate || '';
