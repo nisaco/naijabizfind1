@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 // Live production API endpoint configuration
-const API_BASE = 'https://naijabizfind.onrender.com/api';
+const API_BASE = '/api';
 
 // --- Premium 3D Tilt Card Component (Untouched UI) ---
 const TiltCard = ({ title, value, icon: Icon, delay }) => {
@@ -92,9 +92,11 @@ export default function OwnerDashboard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // Secure Referral System Specific State Matrices
+  // ✅ DYNAMIC CONFIGURATION STATE: Absolute zero raw parameters hardcoded here
   const [referralCodeString, setReferralCodeString] = useState('');
   const [referralUsageCount, setReferralUsageCount] = useState(0);
+  const [maxAllowedReferrals, setMaxAllowedReferrals] = useState(0);
+  const [livePayoutRate, setLivePayoutRate] = useState(0);
   const [isLinkExpired, setIsLinkExpired] = useState(false);
   const [walletBalanceValue, setWalletBalanceValue] = useState(0);
   const [walletTotalEarnedValue, setWalletTotalEarnedValue] = useState(0);
@@ -145,9 +147,11 @@ export default function OwnerDashboard() {
           setMyListings(Array.isArray(data) ? data : data._id ? [data] : []); 
         }
 
-        // ✅ REWIND COMPATIBILITY CONTEXT: Un-wrap database metadata metrics cleanly to populate localized states
+        // ✅ REWIND RECONCILIATION LAYER: Bind completely from backend parameters mapping arrays
         if (data.myReferralCode) setReferralCodeString(data.myReferralCode);
         if (data.referralCount !== undefined) setReferralUsageCount(data.referralCount);
+        if (data.maxReferralsLimit !== undefined) setMaxAllowedReferrals(data.maxReferralsLimit);
+        if (data.payoutRatePerReferral !== undefined) setLivePayoutRate(data.payoutRatePerReferral);
         if (data.isReferralExpired !== undefined) setIsLinkExpired(data.isReferralExpired);
         if (data.walletBalance !== undefined) setWalletBalanceValue(data.walletBalance);
         if (data.walletTotalEarned !== undefined) setWalletTotalEarnedValue(data.walletTotalEarned);
@@ -350,7 +354,7 @@ export default function OwnerDashboard() {
           <button onClick={() => { setEditingId(null); setFormData({ name: '', category: 'fashion', city: '', address: '', description: '', email: '', phone: '', whatsapp: '', openTime: '09:00', closeTime: '18:00', plan: 'basic' }); handleTabToggle('add'); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all transform hover:scale-105 ${activeTab === 'add' ? 'bg-white text-[#008751] shadow-sm border border-green-100' : 'text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
             <PlusCircle size={18} /> Add New Listing
           </button>
-          {/* ✅ ISOLATED SIDEBAR NODE LINK: Completely separated tab view context block */}
+          {/* Isolated Affiliate Wallet link button layout tree */}
           <button onClick={() => handleTabToggle('wallet')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all transform hover:scale-105 ${activeTab === 'wallet' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md' : 'text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
             <Wallet size={18} /> Affiliate Wallet
           </button>
@@ -411,7 +415,7 @@ export default function OwnerDashboard() {
                   <Store size={40} />
                 </div>
                 <h3 className="text-xl font-black text-gray-900 mb-3 tracking-tight">Ready to expand your reach?</h3>
-                <p className="text-gray-500 text-sm md:text-base max-w-md mb-8 leading-relaxed">Create your first verified business listing to start capturing organic traffic from users across NaijaBizFind.</p>
+                <p className="text-gray-500 text-sm md:text-base max-w-md mb-8 leading-relaxed">Create your first verified business listing to start capturing traffic from users across NaijaBizFind.</p>
                 <button onClick={() => { setEditingId(null); handleTabToggle('add'); }} className="bg-gray-900 text-white px-8 py-4 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-gray-800 transition-all hover:scale-105 shadow-xl">
                   <PlusCircle size={20} /> Register Business
                 </button>
@@ -585,12 +589,12 @@ export default function OwnerDashboard() {
         )}
 
         {/* ==========================================================
-            ✅ TAB 4: ISOLATED AFFILIATE CASH WALLET LEDGER HOOKS
+            ✅ TAB 4: ACCESSIBLE AFFILIATE CASH WALLET VIEW PANEL
         ============================================================ */}
         {activeTab === 'wallet' && (
           <div className="max-w-4xl mx-auto space-y-6 animate-[fadeInUp_0.5s_ease-out]">
             
-            {/* Visual Glass Balance Plot Header */}
+            {/* Visual Balance Card */}
             <div className="bg-gradient-to-tr from-slate-900 via-gray-900 to-emerald-950 rounded-3xl p-8 text-white border border-gray-800 shadow-2xl relative overflow-hidden group">
               <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
               
@@ -616,19 +620,19 @@ export default function OwnerDashboard() {
               </div>
             </div>
 
-            {/* Payout Rule Guidelines Cards */}
+            {/* Payout Rule Guidelines Cards (Values load strictly from state parameters) */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm space-y-1">
                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Incentive Rate</div>
-                <div className="text-xl font-extrabold text-gray-900">₦40.00 / Conversion</div>
+                <div className="text-xl font-extrabold text-gray-900">₦{livePayoutRate}.00 / Conversion</div>
               </div>
               <div className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm space-y-1">
                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Usage Progress</div>
-                <div className="text-xl font-extrabold text-gray-900">{referralUsageCount} / 15 Registered</div>
+                <div className="text-xl font-extrabold text-gray-900">{referralUsageCount} / {maxAllowedReferrals} Registered</div>
               </div>
               <div className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm space-y-1">
                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Link Capability</div>
-                <span className={`inline-block px-2.5 py-0.5 rounded font-black text-[10px] uppercase border ${isLinkExpired ? 'bg-red-50 text-red-600 border-red-100' : 'bg-green-50 text-green-700 border-green-100'}`}>
+                <span className={`腔line-block px-2.5 py-0.5 rounded font-black text-[10px] uppercase border ${isLinkExpired ? 'bg-red-50 text-red-600 border-red-100' : 'bg-green-50 text-green-700 border-green-100'}`}>
                   {isLinkExpired ? 'Expired / Closed' : 'Active Operating'}
                 </span>
               </div>
@@ -638,7 +642,7 @@ export default function OwnerDashboard() {
             <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm space-y-4">
               <div>
                 <h4 className="font-bold text-gray-900 text-sm tracking-tight flex items-center gap-1.5"><HelpCircle size={16} className="text-[#008751]" /> How to collect credit bonuses</h4>
-                <p className="text-xs text-gray-500 mt-1 leading-relaxed">Copy your unique onboarding invitation link block listed below. Share it with friends or storefront entities. Once they join via this route and register a paid business page, ₦40 is dispatched instantly into your ledger log book.</p>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">Copy your unique onboarding invitation link block listed below. Share it with friends or storefront entities. Once they join via this route and register a paid business page, ₦{livePayoutRate} is dispatched instantly into your ledger log book.</p>
               </div>
 
               <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between gap-4">

@@ -35,6 +35,9 @@ const apiLimiter = rateLimit({
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
+  'https://naijabizfind.onrender.com', 
+  'https://naijabizfind.online',      
+  'https://www.naijabizfind.online',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 

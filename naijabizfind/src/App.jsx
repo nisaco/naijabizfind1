@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 // --- CONFIG ---
-const API_BASE = 'https://naijabizfind.onrender.com/api';
+const API_BASE = '/api';
 
 // Custom TikTok Icon
 const TikTokIcon = ({ size = 18 }) => (
