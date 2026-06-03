@@ -1,18 +1,65 @@
 import express from 'express';
 import Business from '../models/Business.js';
 import Transaction from '../models/Transaction.js';
+import User from '../models/User.js'; 
 import adminAuth from '../middleware/adminAuth.js';
 
 const router = express.Router();
 
-// All admin routes are protected by the adminAuth middleware
+// All admin routes are protected by the adminAuth middleware header checks
+
+// @route   GET /api/admin/users
+// @desc    Pull complete master account profiles list (Admin Panel Only)
+// @access  Admin only
+router.get('/users', adminAuth, async (req, res) => {
+  try {
+    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+    res.json(users);
+  } catch (error) {
+    console.error('Admin master registry read failure:', error);
+    res.status(500).json({ message: 'Database transaction error on registry tracking', error: error.message });
+  }
+});
+
+// @route   PUT /api/admin/users/blacklist/:id
+// @desc    Toggle user account state between standard operation and blacklist deactivation
+// @access  Admin only
+router.put('/users/blacklist/:id', adminAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'Target user account document not found.' });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(400).json({ message: 'Security Safeguard: System Administrator accounts cannot be blacklisted.' });
+    }
+
+    let operationalRole = user.role;
+    if (operationalRole === 'blacklisted') {
+      const hasBusiness = await Business.findOne({ phone: user.phone });
+      user.role = hasBusiness ? 'owner' : 'user';
+    } else {
+      user.role = 'blacklisted';
+    }
+
+    await user.save();
+    
+    res.json({ 
+      message: `Account status successfully updated to: ${user.role.toUpperCase()}`, 
+      user 
+    });
+  } catch (error) {
+    console.error('Admin user blacklist error:', error);
+    res.status(500).json({ message: 'Internal server error executing account deactivation', error: error.message });
+  }
+});
 
 // @route   GET /api/admin/submissions
 // @desc    List all businesses with 'pending' status (paid, awaiting approval)
 // @access  Admin only
 router.get('/submissions', adminAuth, async (req, res) => {
   try {
-    // Show paid-but-pending businesses first — these are the ones needing review
     const pending = await Business.find({ isPaid: true, status: 'pending' }).sort({ createdAt: -1 });
     res.json(pending);
   } catch (error) {
@@ -73,7 +120,7 @@ router.put('/approve/:id', adminAuth, async (req, res) => {
 // @access  Admin only
 router.put('/reject/:id', adminAuth, async (req, res) => {
   try {
-    const { reason } = req.body; // Optional rejection reason
+    const { reason } = req.body; 
 
     const business = await Business.findById(req.params.id);
     if (!business) {

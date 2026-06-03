@@ -304,9 +304,6 @@ export default function AdminDashboard() {
             <button type="submit" className="w-full py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black text-sm tracking-wide shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
               Decrypt Dashboard Core <ArrowRight size={16} />
             </button>
-            <button type="button" onClick={() => navigate('/login')} className="w-full text-center text-xs font-bold text-gray-500 hover:text-white pt-2 transition-colors">
-              Return to regular login portal
-            </button>
           </form>
         </div>
       </div>
@@ -630,6 +627,8 @@ export default function AdminDashboard() {
                       <div className="space-y-1.5 text-xs text-gray-400 font-medium">
                         <p className="flex items-center gap-2 truncate"><Mail size={12} className="text-gray-500 flex-shrink-0" /> {user.email}</p>
                         <p className="flex items-center gap-2"><Phone size={12} className="text-gray-500 flex-shrink-0" /> {user.phone || 'No direct log phone'}</p>
+                        {/* ✅ ADMINISTRATIVE TRANSPARENCY BLOCK: Display user's referral balance ledger details right inside rows */}
+                        <p className="text-[11px] font-bold text-emerald-400 pt-1">Wallet Credit: ₦{(user.walletBalance || 0).toLocaleString()}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-gray-850 gap-2">
@@ -642,8 +641,8 @@ export default function AdminDashboard() {
                           onClick={() => toggleUserBlacklist(user._id, user.role)}
                           className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide flex items-center gap-1 transition-all ${
                             user?.role === 'blacklisted' 
-                              ? 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500 hover:text-white' 
-                              : 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white'
+                              ? 'bg-green-50/10 text-green-400 border border-green-50/20 hover:bg-green-500 hover:text-white' 
+                              : 'bg-red-50/10 text-red-400 border border-red-50/20 hover:bg-red-500 hover:text-white'
                           }`}
                         >
                           {actionInProgress === user._id ? (
@@ -651,7 +650,7 @@ export default function AdminDashboard() {
                           ) : user?.role === 'blacklisted' ? (
                             <>Unban Account</>
                           ) : (
-                            <><BlacklistIcon size={12} /> Blacklist</>
+                            <><XCircle size={12} /> Blacklist</>
                           )}
                         </button>
                       )}

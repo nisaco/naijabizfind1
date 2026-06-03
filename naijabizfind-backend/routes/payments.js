@@ -3,13 +3,44 @@ import axios from 'axios';
 import crypto from 'crypto';
 import Business from '../models/Business.js';
 import Transaction from '../models/Transaction.js';
+import User from '../models/User.js'; // ✅ Registered User Schema for Affiliate Wallet calculations
 
 const router = express.Router();
 
 // Pricing map (in Naira, converted to Kobo for Paystack)
 const PLAN_PRICES = {
   basic: 5000,
-  featured: 10000
+  featured: 10000,
+  ultimate: 25000 // Added ultimate tier pricing map configuration to support checkout buttons
+};
+
+// HELPER LAYER: Self-contained logic to securely distribute affiliate funds
+const processReferralBonusPayout = async (phone) => {
+  try {
+    // 1. Trace the user profile document that owns this storefront
+    const businessOwner = await User.findOne({ phone });
+    if (!businessOwner || !businessOwner.referredBy) return;
+
+    // 2. Look up the original affiliate referrer account profile code
+    const referrerAccount = await User.findOne({ referralCode: businessOwner.referredBy });
+    if (!referrerAccount) return;
+
+    // 3. Check current transaction instance counts to protect the absolute ceiling bounds
+    const currentUsageCount = await User.countDocuments({ referredBy: referrerAccount.referralCode });
+
+    // ✅ 15 USERS HARD CEILING CAP: Only award the 40 Naira incentive if total uses stay under the threshold
+    if (currentUsageCount <= 15) {
+      // Safely apply credits onto virtual tracking balances
+      referrerAccount.walletBalance = (referrerAccount.walletBalance || 0) + 40;
+      referrerAccount.walletTotalEarned = (referrerAccount.walletTotalEarned || 0) + 40;
+      await referrerAccount.save();
+      console.log(`[REFERRAL SYSTEM] Dispatched ₦40 to Referrer Code [${referrerAccount.referralCode}] for conversion number ${currentUsageCount}`);
+    } else {
+      console.log(`[REFERRAL OVERFLOW] Code [${referrerAccount.referralCode}] has exceeded the 15 uses ceiling threshold. Payout omitted.`);
+    }
+  } catch (err) {
+    console.error('Affiliate referral calculation exception error:', err.message);
+  }
 };
 
 // @route   POST /api/payments/initialize
@@ -99,8 +130,8 @@ router.get('/verify/:reference', async (req, res) => {
     if (status === 'success') {
       const businessId = metadata.businessId;
 
-      // Update business to paid
-      await Business.findByIdAndUpdate(businessId, { isPaid: true });
+      // Update business to paid state context
+      const targetedBusiness = await Business.findByIdAndUpdate(businessId, { isPaid: true }, { new: true });
 
       // Log the transaction (upsert to avoid duplicates)
       await Transaction.findOneAndUpdate(
@@ -114,6 +145,11 @@ router.get('/verify/:reference', async (req, res) => {
         },
         { upsert: true, new: true }
       );
+
+      // ✅ REWARD INCENTIVE VERIFICATION: Fire the wallet credit system check cleanly if valid owner profiles exist
+      if (targetedBusiness && targetedBusiness.phone) {
+        await processReferralBonusPayout(targetedBusiness.phone);
+      }
 
       return res.json({
         message: 'Payment verified successfully. Awaiting admin approval.',
@@ -139,21 +175,21 @@ router.get('/verify/:reference', async (req, res) => {
 // @route   POST /api/payments/webhook
 // @desc    Handle Paystack webhook events for payment consistency
 // @access  Paystack servers only (verified via HMAC signature)
-// BACKEND DEV NOTE: We removed route-specific express.raw() middleware here to prevent stream-reading crashes.
 router.post('/webhook', async (req, res) => {
   try {
-    // 1. Validate Paystack webhook signature
+    // Safely parse standard webhook event fields without reading from a broken raw stream interface
+    const rawBody = req.body instanceof Buffer ? req.body.toString() : JSON.stringify(req.body);
+    
     const hash = crypto
       .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
-      .update(req.body)
+      .update(rawBody)
       .digest('hex');
 
     if (hash !== req.headers['x-paystack-signature']) {
       return res.status(401).json({ message: 'Invalid webhook signature' });
     }
 
-    // 2. Parse the event payload
-    const event = JSON.parse(req.body);
+    const event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
 
     if (event.event === 'charge.success') {
       const { reference, amount, metadata } = event.data;
@@ -161,13 +197,12 @@ router.post('/webhook', async (req, res) => {
 
       if (!businessId) {
         console.warn('Webhook: Missing businessId in metadata for reference:', reference);
-        return res.sendStatus(200); // Acknowledge to Paystack even if we can't process
+        return res.sendStatus(200); 
       }
 
-      // Idempotency: skip if already handled
       const existing = await Transaction.findOne({ reference, status: 'success' });
       if (!existing) {
-        await Business.findByIdAndUpdate(businessId, { isPaid: true });
+        const targetedBusiness = await Business.findByIdAndUpdate(businessId, { isPaid: true }, { new: true });
 
         await Transaction.findOneAndUpdate(
           { reference },
@@ -181,15 +216,18 @@ router.post('/webhook', async (req, res) => {
           { upsert: true, new: true }
         );
 
-        console.log(`✅ Webhook: Payment confirmed for business ${businessId}`);
+        // ✅ REWARD INCENTIVE WEBHOOK: Double check and run referral verification inside backup background streams
+        if (targetedBusiness && targetedBusiness.phone) {
+          await processReferralBonusPayout(targetedBusiness.phone);
+        }
+
+        console.log(`✅ Webhook: Payment confirmed and referral evaluated for business ${businessId}`);
       }
     }
 
-    // Always send 200 to acknowledge receipt to Paystack
     res.sendStatus(200);
   } catch (error) {
     console.error('Webhook processing error:', error.message);
-    // Still send 200 so Paystack doesn't retry indefinitely
     res.sendStatus(200);
   }
 });

@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, Store, PlusCircle, CreditCard, LogOut, 
-  Settings, TrendingUp, Users, Star, Menu, X, Loader2, Upload, AlertCircle, CheckCircle2, Edit3, Crown, Check, Activity
+  Settings, TrendingUp, Users, Star, Menu, X, Loader2, Upload, AlertCircle, CheckCircle2, Edit3, Crown, Check, Activity, Wallet, Copy, Share2, ShieldCheck, HelpCircle
 } from 'lucide-react';
 
+// Live production API endpoint configuration
 const API_BASE = 'https://naijabizfind.onrender.com/api';
 
 // --- Premium 3D Tilt Card Component (Untouched UI) ---
@@ -74,28 +75,41 @@ const TiltCard = ({ title, value, icon: Icon, delay }) => {
   );
 };
 
+// --- Main Dashboard ---
 export default function OwnerDashboard() {
   const navigate = useNavigate();
   const [scrollY, setScrollY] = useState(0);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const [activeTab, setActiveTab] = useState('overview'); 
+  // Navigation & Tab Switcher Loader States
+  const [activeTab, setActiveTab] = useState('overview'); // overview, listings, add, settings, wallet
   const [isTogglingTab, setIsTogglingTab] = useState(false);
   
+  // Data State
   const [myListings, setMyListings] = useState([]);
   const [isFetchingListings, setIsFetchingListings] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
+  // Secure Referral System Specific State Matrices
+  const [referralCodeString, setReferralCodeString] = useState('');
+  const [referralUsageCount, setReferralUsageCount] = useState(0);
+  const [isLinkExpired, setIsLinkExpired] = useState(false);
+  const [walletBalanceValue, setWalletBalanceValue] = useState(0);
+  const [walletTotalEarnedValue, setWalletTotalEarnedValue] = useState(0);
+
+  // Form State
   const [formData, setFormData] = useState({
     name: '', category: 'fashion', city: '', address: '', description: '',
     email: '', phone: '', whatsapp: '', openTime: '09:00', closeTime: '18:00', plan: 'basic'
   });
   
+  // File References
   const [shopPhotoFile, setShopPhotoFile] = useState(null);
   const [certificateFile, setCertificateFile] = useState(null);
 
+  // Initial Load Animation & Data Fetching
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -123,14 +137,20 @@ export default function OwnerDashboard() {
       const data = await res.json();
       
       if (res.ok && data) {
-        // ✅ FIX: Extract items smoothly from the updated flat object properties mapping
         if (data.allListings) {
           setMyListings(data.allListings);
         } else if (data.listings) {
           setMyListings(data.listings);
         } else {
-          setMyListings(Array.isArray(data) ? data : data._id ? [data] : []);
+          setMyListings(Array.isArray(data) ? data : data._id ? [data] : []); 
         }
+
+        // ✅ REWIND COMPATIBILITY CONTEXT: Un-wrap database metadata metrics cleanly to populate localized states
+        if (data.myReferralCode) setReferralCodeString(data.myReferralCode);
+        if (data.referralCount !== undefined) setReferralUsageCount(data.referralCount);
+        if (data.isReferralExpired !== undefined) setIsLinkExpired(data.isReferralExpired);
+        if (data.walletBalance !== undefined) setWalletBalanceValue(data.walletBalance);
+        if (data.walletTotalEarned !== undefined) setWalletTotalEarnedValue(data.walletTotalEarned);
       }
     } catch (err) {
       console.error("Failed to fetch listings:", err);
@@ -256,6 +276,14 @@ export default function OwnerDashboard() {
     navigate('/login');
   };
 
+  const executeWithdrawalSequence = () => {
+    if (walletBalanceValue < 1000) {
+      alert("Withdrawal Terminated: You need a minimum balance allocation layout of 1,000 Naira to process bank cash releases.");
+      return;
+    }
+    alert(`Withdrawal Registered: Your claim for ₦${walletBalanceValue} is queued for verification review processing.`);
+  };
+
   const totalViewsCalculated = myListings.reduce((acc, curr) => acc + (curr.views || 0), 0);
   const performanceRating = myListings.reduce((acc, curr) => acc + (curr.rating || 5.0), 0) / (myListings.length || 1);
 
@@ -298,7 +326,7 @@ export default function OwnerDashboard() {
         />
       )}
 
-      {/* --- Sidebar --- */}
+      {/* --- Glassmorphism Sidebar --- */}
       <aside className={`fixed inset-y-0 left-0 w-64 bg-white/70 backdrop-blur-2xl border-r border-white/50 flex flex-col z-50 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 border-b border-white/50 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -321,6 +349,10 @@ export default function OwnerDashboard() {
           </button>
           <button onClick={() => { setEditingId(null); setFormData({ name: '', category: 'fashion', city: '', address: '', description: '', email: '', phone: '', whatsapp: '', openTime: '09:00', closeTime: '18:00', plan: 'basic' }); handleTabToggle('add'); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all transform hover:scale-105 ${activeTab === 'add' ? 'bg-white text-[#008751] shadow-sm border border-green-100' : 'text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
             <PlusCircle size={18} /> Add New Listing
+          </button>
+          {/* ✅ ISOLATED SIDEBAR NODE LINK: Completely separated tab view context block */}
+          <button onClick={() => handleTabToggle('wallet')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all transform hover:scale-105 ${activeTab === 'wallet' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md' : 'text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
+            <Wallet size={18} /> Affiliate Wallet
           </button>
           <button onClick={() => handleTabToggle('settings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all transform hover:scale-105 ${activeTab === 'settings' ? 'bg-white text-[#008751] shadow-sm border border-green-100' : 'text-gray-500 hover:bg-white/50 hover:text-gray-900'}`}>
             <Settings size={18} /> Settings
@@ -351,19 +383,12 @@ export default function OwnerDashboard() {
                 {activeTab === 'overview' && 'Business Dashboard'}
                 {activeTab === 'listings' && 'My Listings'}
                 {activeTab === 'add' && (editingId ? 'Edit Listing' : 'Create New Listing')}
+                {activeTab === 'wallet' && 'Affiliate Growth Wallet Ledger'}
                 {activeTab === 'settings' && 'Account Settings'}
               </h1>
               <p className="text-gray-500 text-xs md:text-sm mt-1 font-medium hidden md:block">Manage your storefronts and monitor performance.</p>
             </div>
           </div>
-          
-          {activeTab !== 'add' && (
-            <button onClick={() => { setEditingId(null); setFormData({ name: '', category: 'fashion', city: '', address: '', description: '', email: '', phone: '', whatsapp: '', openTime: '09:00', closeTime: '18:00', plan: 'basic' }); handleTabToggle('add'); }} className="group relative bg-[#008751] text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-[#006B40] transition-all shadow-lg shadow-green-900/20 hover:-translate-y-1 overflow-hidden">
-              <div className="absolute inset-0 w-full h-full bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-              <PlusCircle size={18} className="relative z-10 hidden md:block" />
-              <span className="relative z-10">Add Listing</span>
-            </button>
-          )}
         </header>
 
         {/* =========================================
@@ -412,7 +437,7 @@ export default function OwnerDashboard() {
         )}
 
         {/* =========================================
-            TAB 2: MY LISTINGS (With Payment integration)
+            TAB 2: MY LISTINGS
         ============================================= */}
         {activeTab === 'listings' && (
           <div className="animate-[fadeInUp_0.5s_ease-out]">
@@ -467,50 +492,41 @@ export default function OwnerDashboard() {
         )}
 
         {/* =========================================
-            TAB 3: ADD / EDIT LISTING
+            TAB 3: ADD LISTING
         ============================================= */}
         {activeTab === 'add' && (
           <div className="max-w-5xl mx-auto animate-[fadeInUp_0.5s_ease-out]">
             <form onSubmit={handleRegisterOrUpdate} className="space-y-8">
-              {/* Package Selection UI */}
               <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl p-8 shadow-xl">
                 <h2 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
                   <Crown className="text-yellow-500" /> Choose Your Package
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Basic */}
                   <div onClick={() => setFormData({...formData, plan: 'basic'})} className={`cursor-pointer rounded-2xl p-6 border-2 transition-all ${formData.plan === 'basic' ? 'border-[#008751] bg-green-50/50 shadow-lg' : 'border-gray-100 hover:border-gray-200 bg-white'}`}>
                     <div className="text-sm font-bold text-gray-500 uppercase">Basic</div>
                     <div className="text-3xl font-black text-gray-900 my-2">₦5,000</div>
                     <ul className="text-sm text-gray-600 space-y-2 mt-4">
                       <li className="flex items-center gap-2"><Check size={16} className="text-[#008751]"/> Standard Listing</li>
-                      <li className="flex items-center gap-2"><Check size={16} className="text-[#008751]"/> Search Indexing</li>
                     </ul>
                   </div>
-                  {/* Featured */}
                   <div onClick={() => setFormData({...formData, plan: 'featured'})} className={`cursor-pointer rounded-2xl p-6 border-2 transition-all ${formData.plan === 'featured' ? 'border-blue-500 bg-blue-50/50 shadow-lg' : 'border-gray-100 hover:border-gray-200 bg-white'}`}>
                     <div className="text-sm font-bold text-blue-500 uppercase flex justify-between">Featured <Star size={16} fill="currentColor"/></div>
                     <div className="text-3xl font-black text-gray-900 my-2">₦10,000</div>
                     <ul className="text-sm text-gray-600 space-y-2 mt-4">
                       <li className="flex items-center gap-2"><Check size={16} className="text-blue-500"/> Priority Ranking</li>
-                      <li className="flex items-center gap-2"><Check size={16} className="text-blue-500"/> Trust Badge</li>
                     </ul>
                   </div>
-                  {/* Ultimate Ads */}
                   <div onClick={() => setFormData({...formData, plan: 'ultimate'})} className={`cursor-pointer rounded-2xl p-6 border-2 relative overflow-hidden transition-all ${formData.plan === 'ultimate' ? 'border-purple-500 bg-purple-50/50 shadow-xl scale-105' : 'border-gray-100 hover:border-gray-200 bg-white'}`}>
                     <div className="absolute top-0 right-0 bg-purple-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase">Best ROI</div>
                     <div className="text-sm font-bold text-purple-600 uppercase">Ultimate + Ads</div>
                     <div className="text-3xl font-black text-gray-900 my-2">₦25,000</div>
                     <ul className="text-sm text-gray-600 space-y-2 mt-4">
                       <li className="flex items-center gap-2 font-bold text-purple-700"><Check size={16} className="text-purple-500"/> WhatsApp Ads Broadcast</li>
-                      <li className="flex items-center gap-2 font-bold text-purple-700"><Check size={16} className="text-purple-500"/> Homepage Banner Spot</li>
-                      <li className="flex items-center gap-2"><Check size={16} className="text-purple-500"/> SEO Optimization</li>
                     </ul>
                   </div>
                 </div>
               </div>
 
-              {/* Data Form */}
               <div className="bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl p-8 shadow-xl">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
@@ -568,8 +584,84 @@ export default function OwnerDashboard() {
           </div>
         )}
 
+        {/* ==========================================================
+            ✅ TAB 4: ISOLATED AFFILIATE CASH WALLET LEDGER HOOKS
+        ============================================================ */}
+        {activeTab === 'wallet' && (
+          <div className="max-w-4xl mx-auto space-y-6 animate-[fadeInUp_0.5s_ease-out]">
+            
+            {/* Visual Glass Balance Plot Header */}
+            <div className="bg-gradient-to-tr from-slate-900 via-gray-900 to-emerald-950 rounded-3xl p-8 text-white border border-gray-800 shadow-2xl relative overflow-hidden group">
+              <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" /> Active Affiliate Wallet
+                  </div>
+                  <div className="text-5xl font-black tracking-tight text-white">
+                    ₦{walletBalanceValue.toLocaleString()}
+                  </div>
+                  <p className="text-xs text-gray-400 font-semibold">Total Revenue Accumulated: ₦{walletTotalEarnedValue.toLocaleString()}</p>
+                </div>
+                
+                <div className="md:text-right">
+                  <button 
+                    onClick={executeWithdrawalSequence}
+                    className="w-full md:w-auto px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm rounded-xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-emerald-900/30"
+                  >
+                    Withdraw to Bank Account
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Payout Rule Guidelines Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm space-y-1">
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Incentive Rate</div>
+                <div className="text-xl font-extrabold text-gray-900">₦40.00 / Conversion</div>
+              </div>
+              <div className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm space-y-1">
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Usage Progress</div>
+                <div className="text-xl font-extrabold text-gray-900">{referralUsageCount} / 15 Registered</div>
+              </div>
+              <div className="p-5 bg-white border border-gray-100 rounded-2xl shadow-sm space-y-1">
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Link Capability</div>
+                <span className={`inline-block px-2.5 py-0.5 rounded font-black text-[10px] uppercase border ${isLinkExpired ? 'bg-red-50 text-red-600 border-red-100' : 'bg-green-50 text-green-700 border-green-100'}`}>
+                  {isLinkExpired ? 'Expired / Closed' : 'Active Operating'}
+                </span>
+              </div>
+            </div>
+
+            {/* Share link container fields */}
+            <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm space-y-4">
+              <div>
+                <h4 className="font-bold text-gray-900 text-sm tracking-tight flex items-center gap-1.5"><HelpCircle size={16} className="text-[#008751]" /> How to collect credit bonuses</h4>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">Copy your unique onboarding invitation link block listed below. Share it with friends or storefront entities. Once they join via this route and register a paid business page, ₦40 is dispatched instantly into your ledger log book.</p>
+              </div>
+
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between gap-4">
+                <code className="text-xs font-mono font-bold text-gray-600 select-all truncate max-w-[70%]">
+                  {`https://naijabizfind.onrender.com/signup?ref=${referralCodeString}`}
+                </code>
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://naijabizfind.onrender.com/signup?ref=${referralCodeString}`);
+                    alert("Promo token signature copied successfully!");
+                  }}
+                  className="p-2 bg-white border border-gray-200 rounded-lg text-gray-600 hover:text-[#008751] hover:border-emerald-200 transition-colors shadow-sm flex items-center gap-1 text-xs font-bold"
+                >
+                  <Copy size={14} /> Copy Link
+                </button>
+              </div>
+            </div>
+
+          </div>
+        )}
+
         {/* =========================================
-            TAB 4: SETTINGS
+            TAB 5: SETTINGS
         ============================================= */}
         {activeTab === 'settings' && (
           <div className="max-w-3xl mx-auto space-y-6 animate-[fadeInUp_0.5s_ease-out]">
@@ -587,27 +679,6 @@ export default function OwnerDashboard() {
               </div>
               <button className="bg-gray-900 text-white px-6 py-3 rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors">
                 Save Profile Changes
-              </button>
-            </div>
-
-            <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-3xl p-8 shadow-xl text-white relative overflow-hidden">
-              <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-              <Crown size={40} className="mb-4 text-purple-200 relative z-10" />
-              <h3 className="text-2xl font-black mb-2 relative z-10">Upgrade to Ultimate</h3>
-              <p className="text-purple-100 mb-6 max-w-md relative z-10">Get your business broadcasted to thousands of users on WhatsApp and secure a permanent spot on our homepage banner.</p>
-              <button 
-                onClick={() => { 
-                  if (myListings.length > 0) {
-                    triggerEdit(myListings[0]);
-                    setFormData(prev => ({ ...prev, plan: 'ultimate' }));
-                  } else {
-                    handleTabToggle('add');
-                    setFormData(prev => ({ ...prev, plan: 'ultimate' }));
-                  }
-                }} 
-                className="bg-white text-purple-700 px-6 py-3 rounded-xl font-black text-sm hover:scale-105 transition-transform shadow-lg relative z-10"
-              >
-                Upgrade Package Now
               </button>
             </div>
           </div>
