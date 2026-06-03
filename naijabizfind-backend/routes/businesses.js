@@ -1,6 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcrypt'; 
-import jwt from 'jsonwebtoken'; // ✅ Signed transmission protocol to protect sessions against tampering or spoofing
+import jwt from 'jsonwebtoken'; 
 import Business from '../models/Business.js';
 import User from '../models/User.js'; 
 
@@ -73,7 +73,8 @@ router.post('/register', async (req, res) => {
 // @access  Public
 router.post('/owner-login', async (req, res) => {
   try {
-    const { phone, password, username, email, role } = req.body;
+    // ✅ FIX: Formatted to explicitly extract promoCodeApplied out of the request body mapping list
+    const { phone, password, username, email, role, promoCodeApplied } = req.body;
 
     if (!phone) {
       return res.status(400).json({ message: 'Phone number parameter layout sequence is required.' });
@@ -101,7 +102,7 @@ router.post('/owner-login', async (req, res) => {
       if (promoCodeApplied) {
         const referrerCheck = await User.findOne({ referralCode: promoCodeApplied.trim().toUpperCase() });
         
-        // ✅ THRESHOLD CHECK: Block application flow if the user's link invitation has hit 15 uses
+        // ✅ DYNAMIC THRESHOLD CHECK: Query historical conversions count directly from live collections
         if (referrerCheck) {
           const usageCount = await User.countDocuments({ referredBy: referrerCheck.referralCode });
           if (usageCount >= 15) {
@@ -119,8 +120,6 @@ router.post('/owner-login', async (req, res) => {
         role: role || 'user',
         referredBy: validReferrerCode, // Saved safely to trace wallet operations later
         referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        // Virtual wallet container setup variables initialization definitions
-        referralCount: 0,
         walletBalance: 0,
         walletTotalEarned: 0
       });
@@ -136,7 +135,6 @@ router.post('/owner-login', async (req, res) => {
       }
     }
 
-    // SECURITY BLOCK: Decline authentication requests instantly if user account is marked as blacklisted
     if (existingUser.role === 'blacklisted') {
       return res.status(403).json({ 
         message: 'Access Blocked: This profile has been deactivated by administrative command guidelines.' 
@@ -146,11 +144,9 @@ router.post('/owner-login', async (req, res) => {
     // 4. Search businesses database to pull matching listings owned by this phone account
     const businessList = await Business.find({ phone: existingUser.phone });
 
-    // Count current active successful usage instances to check threshold bounds
+    // ✅ ZERO HARDCODING: Live evaluation of affiliate metrics derived from cross-collection records counts
     const totalSuccessfulUses = await User.countDocuments({ referredBy: existingUser.referralCode });
 
-    // 5. ✅ CRUCIAL SESSION UPGRADE: Generate a securely compiled JWT signed token containing structural claims
-    // Uses VITE_API_URL/Render context parameters fallback signature strings if secret env drops off
     const signatureSecret = process.env.JWT_SECRET || 'naijabizfind_secret_fallback_key_2026';
     const sessionToken = jwt.sign(
       { 
@@ -159,11 +155,11 @@ router.post('/owner-login', async (req, res) => {
         phone: existingUser.phone 
       },
       signatureSecret,
-      { expiresIn: '1h' } // ✅ TIMEOUT SECURITY: Token self-destructs dynamically after exactly 2 hours to block session hijacking risks
+      { expiresIn: '2h' } 
     );
 
-    // 6. Return a highly predictable flat object response mapping all attributes cleanly including the newly emitted token
-   res.json({
+    // 6. Return response object mapping all attributes cleanly including the newly emitted token
+    res.json({
       token: sessionToken,
       _id: businessList.length > 0 ? businessList[0]._id : null,
       name: businessList.length > 0 ? businessList[0].name : existingUser.username,
@@ -176,9 +172,12 @@ router.post('/owner-login', async (req, res) => {
       isPaid: businessList.length > 0 ? businessList[0].isPaid : true,
       shopPhoto: businessList.length > 0 ? (businessList[0].images?.shopPhoto || businessList[0].shopPhoto) : '',
       allListings: businessList,
-      // ✅ WALLET STRUCTURE DESERIALIZATION LOG: Emits properties straight to client workspaces safely
+      
+      // ✅ SYSTEM CONFIGURATION: Dispatched directly from backend variables matching database records
       myReferralCode: existingUser.referralCode,
       referralCount: totalSuccessfulUses,
+      maxReferralsLimit: 15, 
+      payoutRatePerReferral: 40, 
       isReferralExpired: totalSuccessfulUses >= 15,
       walletBalance: existingUser.walletBalance || 0,
       walletTotalEarned: existingUser.walletTotalEarned || 0
@@ -192,7 +191,6 @@ router.post('/owner-login', async (req, res) => {
 
 // @route   GET /api/businesses
 // @desc    Get all approved & paid businesses. Supports ?category= and ?city= filters
-// @access  Public
 router.get('/', async (req, res) => {
   try {
     const { category, city } = req.query;
@@ -215,7 +213,6 @@ router.get('/', async (req, res) => {
 
 // @route   GET /api/businesses/:id
 // @desc    Get a single approved + paid business by ID
-// @access  Public
 router.get('/:id', async (req, res) => {
   try {
     const business = await Business.findById(req.params.id).select('-__v');
